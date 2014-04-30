@@ -6,6 +6,13 @@ define([
 	"require"
 ], function (test, assert, util, specialKeys, require) {
 	var GRID_ROW_COUNT = 6;
+	var getSelection = "return grid.selection;";
+
+	function expect(expectedSelection, message) {
+		return function (gridSelection) {
+			assert.deepEqual(gridSelection, expectedSelection, message);
+		};
+	}
 
 	test.suite("dgrid/Selection functional tests", function () {
 		var CONTROL_KEY = specialKeys.Control;
@@ -50,9 +57,7 @@ define([
 				remote.elementByCssSelector("#grid-row-" + rowIndex)
 						.click()
 						.end()
-					.execute(function () {
-						return grid.selection;
-					})
+					.execute(getSelection)
 						.then(function (gridSelection) {
 							var rowId;
 
@@ -96,9 +101,7 @@ define([
 						.click()
 						.keys(specialKeys.NULL)
 						.end()
-					.execute(function () {
-						return grid.selection;
-					})
+					.execute(getSelection)
 						.then(function (gridSelection) {
 							var rowId;
 
@@ -112,8 +115,7 @@ define([
 										"Row " + rowId + " should not be selected");
 								}
 							}
-						})
-					.end();
+						});
 			}
 
 			remote.execute(function () {
@@ -135,41 +137,39 @@ define([
 
 			function each (rowIndex) {
 				remote.elementByCssSelector("#grid-row-" + rowIndex)
-					.keys(CONTROL_KEY)
-					.click()
-					.keys(specialKeys.NULL)
+						.keys(CONTROL_KEY)
+						.click()
+						.keys(specialKeys.NULL)
+						.end()
+					.execute(getSelection)
+						.then(function (gridSelection) {
+							var rowId;
+
+							for (rowId = 0; rowId < GRID_ROW_COUNT; rowId++) {
+								if (rowId === rowIndex ) {
+									assert.isTrue(gridSelection[rowId],
+										"The clicked row (" + rowIndex + ") should be selected");
+								}
+								else {
+									assert.isUndefined(gridSelection[rowId],
+										"Row " + rowId + " should not be selected");
+								}
+							}
+						})
+						.keys(CONTROL_KEY)
+						.click()
+						.keys(specialKeys.NULL)
 					.execute(function () {
 						return grid.selection;
 					})
-					.then(function (gridSelection) {
-						var rowId;
+						.then(function (gridSelection) {
+							var rowId;
 
-						for (rowId = 0; rowId < GRID_ROW_COUNT; rowId++) {
-							if (rowId === rowIndex ) {
-								assert.isTrue(gridSelection[rowId],
-									"The clicked row (" + rowIndex + ") should be selected");
-							}
-							else {
+							for (rowId = 0; rowId < GRID_ROW_COUNT; rowId++) {
 								assert.isUndefined(gridSelection[rowId],
 									"Row " + rowId + " should not be selected");
 							}
-						}
-					})
-					.keys(CONTROL_KEY)
-					.click()
-					.keys(specialKeys.NULL)
-					.execute(function () {
-						return grid.selection;
-					})
-					.then(function (gridSelection) {
-						var rowId;
-
-						for (rowId = 0; rowId < GRID_ROW_COUNT; rowId++) {
-							assert.isUndefined(gridSelection[rowId],
-								"Row " + rowId + " should not be selected");
-						}
-					})
-				.end();
+						});
 			}
 
 			remote.execute(function () {
@@ -193,9 +193,7 @@ define([
 				remote.elementByCssSelector("#grid-row-" + rowIndex)
 						.click()
 						.end()
-					.execute(function () {
-						return grid.selection;
-					})
+					.execute(getSelection)
 						.then(function (gridSelection) {
 							var rowId;
 
@@ -235,7 +233,7 @@ define([
 			remote.execute(function () {
 					grid.set("selectionMode", "extended");
 				})
-					.elementByCssSelector("#grid-row-0")
+				.elementByCssSelector("#grid-row-0")
 					.click()
 					.end()
 				.elementByCssSelector("#grid-row-1")
@@ -248,20 +246,12 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							1: true,
-							2: true,
-							3: true
-						};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Rows 1-3 should be selected");
-					})
-					.end()
+				.execute(getSelection)
+					.then(expect({
+						1: true,
+						2: true,
+						3: true
+					}, "Rows 1-3 should be selected"))
 				.elementByCssSelector("#grid-row-4")
 					.click()
 					.end()
@@ -270,17 +260,11 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							4: true,
-							5: true
-						};
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Rows 4-5 should be selected");
-					});
+				.execute(getSelection)
+					.then(expect({
+						4: true,
+						5: true
+					}, "Rows 4-5 should be selected"));
 
 			return remote.end();
 		});
@@ -293,38 +277,20 @@ define([
 			remote.execute(function () {
 					grid.set("selectionMode", "extended");
 				})
-					.elementByCssSelector("#grid-row-0")
-					.keys(CONTROL_KEY)
-					.click()
-					.keys(specialKeys.NULL)
-					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							0: true
-						};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Row 0 should be selected");
-					})
-					.end()
 				.elementByCssSelector("#grid-row-0")
 					.keys(CONTROL_KEY)
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"No rows should be selected");
-					})
+				.execute(getSelection)
+					.then(expect({ 0: true }, "Row 0 should be selected"))
+				.elementByCssSelector("#grid-row-0")
+					.keys(CONTROL_KEY)
+					.click()
+					.keys(specialKeys.NULL)
 					.end()
+				.execute(getSelection)
+					.then(expect({}, "No rows should be selected"))
 				.elementByCssSelector("#grid-row-1")
 					.keys(CONTROL_KEY)
 					.click()
@@ -340,20 +306,12 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							1: true,
-							2: true,
-							3: true
-						};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Rows 1-3 should be selected");
-					})
-					.end()
+				.execute(getSelection)
+					.then(expect({
+						1: true,
+						2: true,
+						3: true
+					}, "Rows 1-3 should be selected"))
 				.elementByCssSelector("#grid-row-0")
 					.click()
 					.end()
@@ -367,21 +325,14 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							0: true,
-							1: true,
-							2: true,
-							4: true,
-							5: true
-						};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Rows 0-2; 4-5 should be selected");
-					});
+				.execute(getSelection)
+					.then(expect({
+						0: true,
+						1: true,
+						2: true,
+						4: true,
+						5: true
+					}, "Rows 0-2; 4-5 should be selected"));
 
 			return remote.end();
 		});
@@ -398,7 +349,7 @@ define([
 			remote.execute(function () {
 					grid.set("selectionMode", "extended");
 				})
-					.elementByCssSelector("#grid-row-0")
+				.elementByCssSelector("#grid-row-0")
 					.click()
 					.end()
 				.elementByCssSelector("#grid-row-2")
@@ -417,21 +368,14 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							0: true,
-							1: true,
-							2: true,
-							4: true,
-							5: true
-						};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Rows 0-2; 4-5 should be selected");
-					});
+				.execute(getSelection)
+					.then(expect({
+						0: true,
+						1: true,
+						2: true,
+						4: true,
+						5: true
+					}, "Rows 0-2; 4-5 should be selected"));
 
 			return remote.end();
 		});
@@ -447,15 +391,12 @@ define([
 				remote.elementByCssSelector("#grid-row-" + rowIndex)
 						.click()
 						.end()
-					.execute(function () {
-						return grid.selection;
-					})
+					.execute(getSelection)
 						.then(function (gridSelection) {
 							expectedSelection[rowIndex] = true;
 							assert.deepEqual(gridSelection, expectedSelection,
 								"Clicking rows should add to selection");
-						})
-						.end();
+						});
 			}
 
 			remote.execute(function () {
@@ -492,21 +433,14 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							0: true,
-							2: true,
-							3: true,
-							4: true,
-							5: true
-						};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Shift+clicking rows should add to selection");
-					});
+				.execute(getSelection)
+					.then(expect({
+						0: true,
+						2: true,
+						3: true,
+						4: true,
+						5: true
+					}, "Shift+clicking rows should add to selection"));
 
 			return remote.end();
 		});
@@ -523,16 +457,13 @@ define([
 				remote.elementByCssSelector("#grid-row-" + rowIndex)
 						.click()
 						.end()
-					.execute(function () {
-						return grid.selection;
-					})
+					.execute(getSelection)
 						.then(function (gridSelection) {
 							expectedSelection[rowIndex] = true;
 
 							assert.deepEqual(gridSelection, expectedSelection,
 								"Clicking rows should add to selection");
-						})
-						.end();
+						});
 			}
 
 			function controlClickEach(rowIndex) {
@@ -541,9 +472,7 @@ define([
 						.click()
 						.keys(specialKeys.NULL)
 						.end()
-					.execute(function () {
-						return grid.selection;
-					})
+					.execute(getSelection)
 						.then(function (gridSelection) {
 							if (expectedSelection[rowIndex] ) {
 								delete expectedSelection[rowIndex];
@@ -554,8 +483,7 @@ define([
 
 							assert.deepEqual(gridSelection, expectedSelection,
 								"Control+clicking rows should toggle selection");
-						})
-						.end();
+						});
 			}
 
 			remote.execute(function () {
@@ -606,19 +534,12 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							0: true,
-							1: true,
-							2: true
-						};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Clicking should select rows");
-					})
+				.execute(getSelection)
+					.then(expect({
+						0: true,
+						1: true,
+						2: true
+					}, "Clicking should select rows"))
 				.elementByCssSelector("#grid-row-0")
 					.click()
 					.end()
@@ -632,15 +553,8 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
-					.then(function (gridSelection) {
-						var expectedSelection = {};
-
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Clicking should deselect rows");
-					});
+				.execute(getSelection)
+					.then(expect({}, "Clicking should deselect rows"));
 
 			return remote.end();
 		});
@@ -679,9 +593,7 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
-					return grid.selection;
-				})
+				.execute(getSelection)
 					.then(function (gridSelection) {
 						assert.deepEqual(gridSelection, {},
 							"Clicking should not affect row selection state");
@@ -715,22 +627,274 @@ define([
 					.click()
 					.keys(specialKeys.NULL)
 					.end()
-				.execute(function () {
+				.execute(getSelection)
+					.then(expect({
+						0: true,
+						1: true,
+						2: true,
+						3: true,
+						4: true,
+						5: true
+					}, "Clicking should not affect row selection state"));
+
+			return remote.end();
+		});
+
+		// Test goal:
+		// Verify single-row selection with dgrid/Keyboard
+		test.test("selectionMode: single; Keyboard", function () {
+			var remote = this.get("remote");
+
+			remote.execute(function () {
+					grid.set("selectionMode", "single");
+					grid.focus(query("#grid-row-0 .field-id")[0]);
 					return grid.selection;
 				})
-					.then(function (gridSelection) {
-						var expectedSelection = {
-							0: true,
-							1: true,
-							2: true,
-							3: true,
-							4: true,
-							5: true
-						};
+					.then(expect({ 0: true }, "Initial grid selection should be row 0"))
+					.keys(specialKeys["Right arrow"])
+				.execute(getSelection)
+					.then(expect({ 0: true }, "Right arrow should not change row selection"))
+					.keys(specialKeys["Down arrow"])
+				.execute(getSelection)
+					.then(expect({ 1: true }, "Down arrow should change row selection"))
+					.keys(specialKeys["Left arrow"])
+				.execute(getSelection)
+					.then(expect({ 1: true }, "Left arrow should not change row selection"))
+					.keys(specialKeys.Shift + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 2: true }, "Shift+down should change row selection"))
+					.keys(CONTROL_KEY + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 2: true }, "Control+down should not change row selection"))
+					.keys(specialKeys.Space)
+				.execute(getSelection)
+					.then(expect({ 3: true }, "Space should change row selection"));
 
-						assert.deepEqual(gridSelection, expectedSelection,
-							"Clicking should not affect row selection state");
+			return remote.end();
+		});
+
+		// Test goal:
+		// Verify extended row selection with dgrid/Keyboard
+		test.test("selectionMode: extended; Keyboard", function () {
+			var remote = this.get("remote");
+
+			if (!isShiftClickSupported) {
+				return;
+			}
+
+			remote.execute(function () {
+					grid.set("selectionMode", "extended");
+					grid.focus(query("#grid-row-0 .field-id")[0]);
+					return grid.selection;
+				})
+					.then(expect({ 0: true }, "Initial grid selection should be row 0"))
+					.keys(specialKeys.Shift + specialKeys["Down arrow"] + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 0: true, 1: true, 2: true }, "Shift+down should expand selection"))
+					.keys(CONTROL_KEY + specialKeys["Down arrow"] + specialKeys.NULL)
+					.keys(CONTROL_KEY + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 0: true, 1: true, 2: true }, "Control+down should not affect selection"))
+					.keys(CONTROL_KEY + specialKeys.Space + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 0: true, 1: true, 2: true, 4: true }, "Control+space should toggle selection (on)"))
+					.keys(CONTROL_KEY + specialKeys.Space + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 0: true, 1: true, 2: true }, "Control+space should toggle selection (off)"));
+
+			return remote.end();
+		});
+
+		// Test goal:
+		// Verify keyboard navigation has no effect with selectionMode:none
+		test.test("selectionMode: none; Keyboard", function () {
+			var remote = this.get("remote");
+			remote.execute(function () {
+					grid.set("selectionMode", "none");
+					grid.focus(query("#grid-row-0 .field-id")[0]);
+					return grid.selection;
+				})
+					.then(expect({}, "Initial selection should be empty"))
+					.keys(specialKeys["Down arrow"])
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(specialKeys.Shift + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(CONTROL_KEY + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(specialKeys["Right arrow"])
+					.keys(specialKeys["Right arrow"])
+					.keys(specialKeys["Right arrow"])
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(specialKeys["Up arrow"])
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(specialKeys["Left arrow"])
+					.keys(specialKeys["Left arrow"])
+					.keys(specialKeys["Left arrow"])
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"));
+
+			return remote.end();
+		});
+
+		// Test goal:
+		// Verify single-cell selection with dgrid/Keyboard and dgrid/CellSelection
+		test.test("selectionMode: single; Keyboard+CellSelection", function () {
+			var remote = this.get("remote");
+
+			remote.execute(function () {
+					grid.destroy();
+					grid = new CellSelectionGrid({
+						id: "grid",
+						cellNavigation: true,
+						selectionMode: "single",
+						columns: columns
 					});
+					document.body.appendChild(grid.domNode);
+					grid.renderArray(data);
+					grid.focus(query("#grid-row-0 .field-id")[0]);
+					return grid.selection;
+				})
+					.then(expect({ 0: { id: true } }, "Initial grid selection should be row 0, column 'id'"))
+					.keys(specialKeys["Right arrow"])
+				.execute(getSelection)
+					.then(expect({ 0: { info: true } }, "Right arrow should change selection"))
+					.keys(specialKeys["Down arrow"])
+				.execute(getSelection)
+					.then(expect({ 1: { info: true } }, "Down arrow should change selection"))
+					.keys(specialKeys["Left arrow"])
+				.execute(getSelection)
+					.then(expect({ 1: { id: true } }, "Left arrow should change selection"))
+					.keys(specialKeys["Up arrow"])
+				.execute(getSelection)
+					.then(expect({ 0: { id: true } }, "Up arrow should change selection"))
+					.keys(CONTROL_KEY + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 0: { id: true } }, "Control+down should not affect selection"))
+					.keys(specialKeys.Shift + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 2: { id: true } }, "Shift+down should change selection"))
+					.keys(CONTROL_KEY + specialKeys["Right arrow"] + specialKeys.NULL)
+					.keys(CONTROL_KEY + specialKeys.Space + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 2: { info: true } }, "Control+space should change selection"))
+					.keys(CONTROL_KEY + specialKeys.Space + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({}, "Control+space should change selection"));
+
+			return remote.end();
+		});
+
+		// Test goal:
+		// Verify extended cell selection with dgrid/Keyboard and dgrid/CellSelection
+		test.test("selectionMode: extended; Keyboard+CellSelection", function () {
+			var remote = this.get("remote");
+
+			remote.execute(function () {
+					grid.destroy();
+					grid = new CellSelectionGrid({
+						id: "grid",
+						cellNavigation: true,
+						selectionMode: "extended",
+						columns: columns
+					});
+					document.body.appendChild(grid.domNode);
+					grid.renderArray(data);
+					grid.focus(query("#grid-row-0 .field-id")[0]);
+					return grid.selection;
+				})
+					.then(expect({ 0: { id: true } }, "Initial grid selection should be row 0, columnd 'id'"))
+					.keys(specialKeys["Right arrow"])
+				.execute(getSelection)
+					.then(expect({ 0: { info: true } }, "Right arrow should change selection"))
+					.keys(specialKeys["Down arrow"])
+				.execute(getSelection)
+					.then(expect({ 1: { info: true } }, "Down arrow should change selection"))
+					.keys(specialKeys["Left arrow"])
+				.execute(getSelection)
+					.then(expect({ 1: { id: true } }, "Left arrow should change selection"))
+					.keys(specialKeys["Up arrow"])
+				.execute(getSelection)
+					.then(expect({ 0: { id: true } }, "Up arrow should change selection"))
+					.keys(CONTROL_KEY + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({ 0: { id: true } }, "Control+down should not affect selection"))
+					.keys(specialKeys.Shift + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({
+						0: { id: true },
+						1: { id: true },
+						2: { id: true }
+					}, "Shift+down should expand selection"))
+					.keys(specialKeys.Shift + specialKeys["Right arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({
+						0: { id: true, info: true },
+						1: { id: true, info: true },
+						2: { id: true, info: true }
+					}, "Shift+right should expand selection"))
+					.keys(CONTROL_KEY + specialKeys.Space + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({
+						0: { id: true, info: true },
+						1: { id: true, info: true },
+						2: { id: true, info: false }
+					}, "Control+space should toggle selection"))
+					.keys(CONTROL_KEY + specialKeys.Space + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({
+						0: { id: true, info: true },
+						1: { id: true, info: true },
+						2: { id: true, info: true }
+					}, "Control+space should toggle selection"));
+
+			return remote.end();
+		});
+
+		// Test goal:
+		// Verify keyboard navigation has no effect with selectionMode:none
+		test.test("selectionMode: none; Keyboard", function () {
+			var remote = this.get("remote");
+			remote.execute(function () {
+					grid.destroy();
+					grid = new CellSelectionGrid({
+						id: "grid",
+						cellNavigation: true,
+						selectionMode: "none",
+						columns: columns
+					});
+					document.body.appendChild(grid.domNode);
+					grid.renderArray(data);
+					grid.focus(query("#grid-row-0 .field-id")[0]);
+					return grid.selection;
+				})
+					.then(expect({}, "Initial selection should be empty"))
+					.keys(specialKeys["Down arrow"])
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(specialKeys.Shift + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(CONTROL_KEY + specialKeys["Down arrow"] + specialKeys.NULL)
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(specialKeys["Right arrow"])
+					.keys(specialKeys["Right arrow"])
+					.keys(specialKeys["Right arrow"])
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(specialKeys["Up arrow"])
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"))
+					.keys(specialKeys["Left arrow"])
+					.keys(specialKeys["Left arrow"])
+					.keys(specialKeys["Left arrow"])
+				.execute(getSelection)
+					.then(expect({}, "Keyboard navigation should not affect selection"));
 
 			return remote.end();
 		});

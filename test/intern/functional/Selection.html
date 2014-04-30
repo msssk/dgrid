@@ -40,22 +40,34 @@
 		<script src="../../../../dojo/dojo.js"></script>
 
 		<script>
+			var CellSelectionGrid;
+			var grid;
+			var columns = {
+				id: "ID",
+				info: "Info"
+			};
+			var data = [];
+			var query;
 			var ready = false;
 
 			require([
 				"dojo/_base/declare",
+				"dojo/query",
 				"dgrid/Grid",
-				"dgrid/Selection"
-			], function (declare, Grid, Selection) {
-				var SelectionGrid = declare([Grid, Selection]);
-				var data = [];
+				"dgrid/Keyboard",
+				"dgrid/Selection",
+				"dgrid/CellSelection"
+			], function (declare, dojoQuery, Grid, Keyboard, Selection, CellSelection) {
+				var SelectionGrid = declare([Grid, Keyboard, Selection]);
 				var i;
 
-				window.grid = new SelectionGrid({
-					columns: {
-						id: "ID",
-						info: "Info"
-					}
+				// Create a global reference for test modules to use
+				query = dojoQuery;
+
+				CellSelectionGrid = declare([Grid, Keyboard, CellSelection]);
+
+				grid = new SelectionGrid({
+					columns: columns
 				}, "grid");
 
 				for (i = 0; i < 6; i++) {
