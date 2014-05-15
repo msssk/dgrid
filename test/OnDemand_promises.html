@@ -64,7 +64,7 @@ require([
 	}, "grid1");
 
 	// Create a grid with an async dojo store.
-	var AsyncMemory = declare([LegacyMemory], {
+	var LegacyAsyncMemory = declare([LegacyMemory], {
 		query: function(query, options){
 			var results, def, timer;
 			results = this.inherited(arguments);
@@ -77,24 +77,27 @@ require([
 			return def.promise;
 		}
 	});
-	var AdaptedLegacyStore = declare([ AsyncMemory, StoreAdapter, Observable ]);
+
+	var store = new StoreAdapter(new LegacyAsyncMemory({
+		data: createItems()
+	})), new Observable());
 
 	new OnDemandGrid({
 		columns: { id: "id", name: "name" },
-		collection: new AdaptedLegacyStore({ data: createItems() })
+		collection: store
 	}, "grid2");
 
-	// Create a dojo data
-	var dataStore = new DataStore({
-		store: new ItemFileReadStore({
-			data: stateData
-		})
-	});
-	StoreAdapter.adapt(dataStore);
-	new OnDemandGrid({
-		columns: { name: "Name", abbreviation: "Abbreviation" },
-		collection: dataStore
-	}, "grid3");
+//	// Create a dojo data
+//	var dataStore = new DataStore({
+//		store: new ItemFileReadStore({
+//			data: stateData
+//		})
+//	});
+//	StoreAdapter.adapt(dataStore);
+//	new OnDemandGrid({
+//		columns: { name: "Name", abbreviation: "Abbreviation" },
+//		collection: dataStore
+//	}, "grid3");
 });
 </script>
 </body>
