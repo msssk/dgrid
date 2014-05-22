@@ -91,7 +91,7 @@ require([
 		}
 	});
 
-	var store = new StoreAdapter({
+	var store = new declare([StoreAdapter, Observable])({
 		objectStore: new LegacyAsyncMemory({
 			data: createItems()
 		})
