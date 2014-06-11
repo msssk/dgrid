@@ -7,7 +7,7 @@ require([
     "dojo/_base/declare", "dgrid/OnDemandGrid", "dgrid/tree", "dgrid/Keyboard", "dgrid/Selection"
 ], function(declare, OnDemandGrid, tree, Keyboard, Selection){
     var treeGrid = new (declare([OnDemandGrid, Keyboard, Selection]))({
-        store: myStore,
+        collection: myStore,
         columns: [
             tree({ label: "Name", field: "name" }),
             { label:"Type", field: "type", sortable: false},
@@ -35,7 +35,7 @@ This allows `getChildren` implementations to perform the same filtering on
 child levels if desired.
 
 The following is a simple example of what a `getChildren` implementation could
-look like in an extension to `dojo/store/Memory`, where hierarchy is indicated
+look like in an extension to `dstore/Memory`, where hierarchy is indicated
 by a `parent` property on child items:
 
 ```js
