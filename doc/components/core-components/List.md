@@ -53,7 +53,7 @@ Property | Description
 `cleanEmptyObservers` | Whether to clean up observers for result sets that are or become empty; defaults to `true` but is set to `false` by the `tree` plugin due to special considerations.
 `showHeader` | Whether to display the header area; normally `false` for lists and `true` for grids.  Can be reset later via `set("showHeader", ...)`.
 `showFooter` | Whether to display the footer area; `false` by default, but enabled and used by some extensions (e.g. Pagination).  Can be reset later via `set("showFooter", ...)`.
-`sort` | How to initially sort the grid; may be either a string referencing a field name, or an array of objects with `attribute` and `descending` properties.  See also `set("sort", ...)` below.
+`sort` | How to initially sort the grid; may be either a string referencing a field name, or an array of objects with `property` and `descending` properties.  See also `set("sort", ...)` below.
 
 ### Method Summary
 

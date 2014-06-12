@@ -53,7 +53,7 @@ clicked to initiate a sort.  This event includes the following properties:
 * `grid`: The Grid instance which fired the event
 * `parentType`: The original type of event responsible for firing this one
   (`click` or `keydown` within a header cell)
-* `sort`: An array of objects with `attribute` and optionally `descending`
+* `sort`: An array of objects with `property` and optionally `descending`
   properties, representing the new sort order to be put into effect
 
 The `dgrid-sort` event bubbles and is cancelable; if canceled, the sort

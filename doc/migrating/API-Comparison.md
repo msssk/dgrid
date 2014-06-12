@@ -70,7 +70,7 @@ the basic steps one would need to follow:
 
 ### autoHeight
 
-Automatic height can be achieved using `height: auto` in the CSS for a grid's
+Automatic height can be achieved using the `dgrid-autoheight` CSS class for a grid's
 main DOM node.  There is no direct programmatic support for this.  (This means
 there is no built-in support for automatically sizing to a certain number of rows.)
 

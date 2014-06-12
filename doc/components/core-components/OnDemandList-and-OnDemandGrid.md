@@ -4,7 +4,7 @@
 
 OnDemandList extends List to provide on-demand lazy loading of data as the user
 scrolls through the list. This provides a seamless, intuitive interface for
-viewing large sets of data in scalable manner.
+viewing large sets of data in a scalable manner.
 
 ```js
 require(["dgrid/OnDemandList", "put-selector/put"], function(OnDemandList, put){
@@ -53,7 +53,7 @@ and previous rows will be pruned from the DOM as they are scrolled well out of
 view.
 
 When working with a writable store, for best results, the store should return
-a collection with an `observe` method, which enables the list to keep its
+a collection with a `track` method, which enables the list to keep its
 display up to date with any changes that occur in the store after the items are
 rendered. The
 [`dstore/Observable`](https://github.com/SitePen/dstore/blob/master/Observable.js)
@@ -70,7 +70,7 @@ Property | Description
 `maxEmptySpace` | The maximum size (in pixels) of unrendered space below or above the rendered portion of the component; default is `Infinity`, which indicates that the size of unrendered space should approximate the total space which would be occupied by all items in the result set.
 `bufferRows` | The number of rows to keep rendered beyond each end of the currently visible area of the component; default is `10`.
 `farOffRemoval` | The minimum distance (in pixels) which must exist between the currently visible area and previously-rendered rows before they are removed from the DOM; default is `2000`, but this can be adjusted based on a known maximum height in cases where keeping fewer nodes in the DOM is preferable.
-`queryRowsOverlap` | Specifies the number of items to "overlap" between queries, which helps ensure consistency of observed updates to items at page boundaries. The default is `1`.
+`queryRowsOverlap` | Specifies the number of items to "overlap" between queries, which helps ensure consistency of observed updates to items at page boundaries. The default is `0`.
 `pagingMethod` | Specifies the method from the `dgrid/util/misc` module to use for throttling the scroll handler; defaults to `"debounce"` to wait until scrolling stops, but can also be set to `"throttleDelayed"` to load even as scrolling continues.
 `pagingDelay` | Specifies the number of milliseconds to debounce or throttle scroll handler calls (and thus also potential store requests); default is `15`.
 `keepScrollPosition` | Whether to attempt preserving scroll position by default on all `refresh` operations (including sort); defaults to `false`.  This can also be set per-refresh by passing an object with a `keepScrollPosition` property to the `refresh` function.
@@ -81,7 +81,7 @@ Property | Description
 -------- | -----------
 `noDataMessage` | An optional message to be displayed when no results are returned by a query.
 `loadingMessage` | An optional message to be displayed in the loading node which appears when a new page of results is requested.
-`getBeforePut` | if `true` (the default), any `save` operations will re-fetch the item from the store via a `get` call, before applying changes represented by dirty data.
+`getBeforePut` | If `true` (the default), any `save` operations will re-fetch the item from the store via a `get` call, before applying changes represented by dirty data.
 `collection` | An instance of a dstore implementation, from which to fetch data.
 
 ### Method Summary 
@@ -104,7 +104,7 @@ Method | Description
 
 ### dgrid-refresh-complete
 
-As of dgrid 0.3.5, OnDemandList emits a `dgrid-refresh-complete` event when
+OnDemandList emits a `dgrid-refresh-complete` event when
 results finish rendering as the result of a `refresh` call (also including the
 initial render). The event includes the following properties:
 
