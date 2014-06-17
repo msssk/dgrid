@@ -19,10 +19,10 @@ truly trivial, e.g. typo fixes, removing compiler warnings, etc.
 ## Discuss Non-Trivial Contributions with the Committers
 
 If your desired contribution is more than a non-trivial fix, you should discuss it on the
-[dojo-interest mailing list](http://mail.dojotoolkit.org/mailman/listinfo/dojo-interest)
+[dojo-interest mailing list][]
 (if you currently are not a member, you can request to be added)
 or in the #dojo IRC channel on irc.freenode.net. Web interfaces are available
-from the [Dojo Toolkit Community page](https://dojotoolkit.org/community/).
+from the [Dojo Toolkit Community page][].
 
 ## Contributor License Agreement
 
@@ -56,8 +56,8 @@ actions will be performed via the `git` command line.
 
 ## 1. Fork the Repository
 
-When logged into your GitHub account, and you are viewing one of the main repositories, you will see the *Fork* button.
-Clicking this button will show you which repositories your can fork to.  Choose your own account.  Once the process
+When logged into your GitHub account, and you are viewing the dgrid repository, you will see the *Fork* button.
+Clicking this button will show you which organizations you can fork to.  Choose your own account.  Once the process
 finishes, you will have your own repository that is "forked" from the GitHub one.
 
 Forking is a GitHub term and not a git term.  Git is a wholly distributed source control system and simply worries
@@ -81,8 +81,8 @@ You should also set up the `upstream` repository.  This will allow you to take c
 and merge them into your local clone and then push them to your GitHub fork:
 
 ```bash
-$ cd dojo
-$ git remote add upstream git@github.com:dojo/dojo.git
+$ cd dgrid
+$ git remote add upstream git@github.com:SitePen/dgrid.git
 $ git fetch upstream
 ```
 
@@ -177,7 +177,7 @@ request.
 # What Makes a Successful Pull Request?
 
 Having your contribution accepted is more than just the mechanics of getting your contribution into a pull request,
-there are several other things that are expected when contributing to the Dojo Toolkit which are covered below.
+there are several other things that are expected when contributing to dgrid which are covered below.
 
 ## Coding Style and Linting
 
@@ -185,14 +185,14 @@ dgrid follows the Dojo Toolkit's [coding style][styleguide].  All pull requests 
 
 ## Inline Documentation
 
-Dojo has an inline API documentation called [DojoDoc][].  Any pull request should ensure it has updated the inline
-documentation appropriately or added the appropriate inline documentation.
+dgrid source code follows the Dojo Toolkit's approach to [inline API documentation][].  Any pull request should
+ensure it has updated or added the appropriate inline documentation.
 
 ## Test Cases
 
 If the pull request changes the functional behaviour or is fixing a defect, the unit test cases should be modified to
 reflect this.  The committer reviewing your pull request is likely to request the appropriate changes in the test
-cases.  Dojo utilises its own test harness called [D.O.H.][] and is available as part of the [dojo/util][] repository.
+cases.  dgrid utilises [Intern][] for automated testing.
 
 It is expected that you will have tested your changes against the existing test cases and appropriate platforms prior to
 submitting your pull request.
@@ -206,11 +206,12 @@ All of your submissions are licensed under a dual "New" BSD/AFL license.
 Unless you have been working with contributing to Dojo for a while, expect a significant amount of feedback on your
 pull requests.  We are a very passionate community and even the committers often will provide robust feedback to each
 other about their code.  Don't be offended by such feedback or feel that your contributions aren't welcome, it is just
-that we are quite passionate and Dojo has a long history with many things that are the "Dojo-way" which may be
+that we are quite passionate and have a long history with many programming practices which may be
 unfamiliar to those who are just starting to contribute.
 
 [help documentation]: http://help.github.com/send-pull-requests
-[support forum]: http://dojotoolkit.org/community/
+[Dojo Toolkit Community page]: http://dojotoolkit.org/community/
+[dojo-interest mailing list]: http://mail.dojotoolkit.org/mailman/listinfo/dojo-interest
 [dojo-contrib]: http://mail.dojotoolkit.org/mailman/listinfo/dojo-contributors
 [cla]: http://dojofoundation.org/about/cla
 [claCheck]: http://dojofoundation.org/about/claCheck
@@ -218,8 +219,7 @@ unfamiliar to those who are just starting to contribute.
 [Fork a Repo]: https://help.github.com/articles/fork-a-repo
 [dgrid-readme]: https://github.com/SitePen/dgrid/blob/master/README.md
 [styleguide]: http://dojotoolkit.org/reference-guide/developer/styleguide.html
-[DojoDoc]: http://dojotoolkit.org/reference-guide/developer/markup.html
-[D.O.H.]: http://dojotoolkit.org/reference-guide/util/doh.html
-[dojo/util]: https://github.com/dojo/util
+[inline API documentation]: http://dojotoolkit.org/reference-guide/developer/markup.html
+[Intern]: http://theintern.io/
 [interactive rebase]: http://git-scm.com/book/en/Git-Tools-Rewriting-History#Changing-Multiple-Commit-Messages
 [rebasing]: http://git-scm.com/book/en/Git-Branching-Rebasing
