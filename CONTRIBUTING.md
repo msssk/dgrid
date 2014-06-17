@@ -14,7 +14,7 @@ provided by GitHub.
 Is there already an issue that addresses your concern?  Do a bit of searching
 in our [issue tracker][] to see if you can find something similar. If not,
 please create a new issue before submitting a pull request unless the change is
-truly trivial, e.g. typo fixes, removing compiler warnings, etc.
+truly trivial, e.g. typo fixes.
 
 ## Discuss Non-Trivial Contributions with the Committers
 
@@ -26,7 +26,7 @@ from the [Dojo Toolkit Community page][].
 
 ## Contributor License Agreement
 
-We require all contributions, to be covered under the Dojo Foundation's [Contributor License Agreement][cla].  This can
+We require all contributions to be covered under the Dojo Foundation's [Contributor License Agreement][cla].  This can
 be done electronically and essentially ensures that you are making it clear that your contributions are your
 contributions, you have the legal right to contribute and you are transferring the copyright of your works to the Dojo 
 Foundation.
@@ -36,7 +36,7 @@ you are covered by a CLA in the notes of the pull request.  The committer will [
 
 If your GitHub user id you are submitting your pull request from differs from the Dojo Community ID or e-mail address
 which you have signed your CLA under, you should specifically note what you have your CLA filed under (and for CCLA
-that you are listed under your companies authorised contributors).
+that you are listed under your company's authorised contributors).
 
 # Submitting a Pull Request
 
@@ -51,14 +51,14 @@ to follow step 3 and beyond:
 6. Issue a Pull Request to the official repository
 7. Your Pull Request is reviewed by a committer and merged into the repository
 
-*Note* While there are other ways to accomplish the steps using other tools, the examples here will assume the most
+*Note*: While there are other ways to accomplish the steps using other tools, the examples here will assume the most
 actions will be performed via the `git` command line.
 
 ## 1. Fork the Repository
 
-When logged into your GitHub account, and you are viewing the dgrid repository, you will see the *Fork* button.
+When logged in to your GitHub account, and you are viewing the dgrid repository, you will see the *Fork* button.
 Clicking this button will show you which organizations you can fork to.  Choose your own account.  Once the process
-finishes, you will have your own repository that is "forked" from the GitHub one.
+finishes, you will have your own repository that is "forked" from the official one.
 
 Forking is a GitHub term and not a git term.  Git is a wholly distributed source control system and simply worries
 about local and remote repositories and allows you to manage your code against them.  GitHub then adds this additional
@@ -160,11 +160,11 @@ $ git push
 In order to have your commits merged into the main repository, you need to create a pull request.  The instructions for
 this can be found in the GitHub Help Article [Creating a Pull Request][].  Essentially you do the following:
 
-1. Go to the site for your repository.
-2. Click the Pull Request button.
-3. Select the feature branch from your repository.
-4. Enter a title and description of your pull request mentioning the corresponding [bug database][] ticket in the description.
-5. Review the commit and files changed tabs.
+1. Go to the site for your repository
+2. Click the Pull Request button
+3. Select the feature branch from your repository
+4. Enter a title and description of your pull request mentioning the corresponding [bug database][issue tracker] ticket in the description
+5. Review the commit and files changed tabs
 6. Click `Send Pull Request`
 
 You will get notified about the status of your pull request based on your GitHub settings.
@@ -203,13 +203,14 @@ All of your submissions are licensed under a dual "New" BSD/AFL license.
 
 ## Expect Discussion and Rework
 
-Unless you have been working with contributing to Dojo for a while, expect a significant amount of feedback on your
+Unless you have been working with contributing to dgrid for a while, expect a significant amount of feedback on your
 pull requests.  We are a very passionate community and even the committers often will provide robust feedback to each
 other about their code.  Don't be offended by such feedback or feel that your contributions aren't welcome, it is just
 that we are quite passionate and have a long history with many programming practices which may be
 unfamiliar to those who are just starting to contribute.
 
 [help documentation]: http://help.github.com/send-pull-requests
+[issue tracker]: https://github.com/SitePen/dgrid/issues
 [Dojo Toolkit Community page]: http://dojotoolkit.org/community/
 [dojo-interest mailing list]: http://mail.dojotoolkit.org/mailman/listinfo/dojo-interest
 [dojo-contrib]: http://mail.dojotoolkit.org/mailman/listinfo/dojo-contributors
