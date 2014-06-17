@@ -9,21 +9,20 @@ This will save time for everyone._
 If you don't understand what a *pull request* is, or how to submit one, please refer to the [help documentation][]
 provided by GitHub.
 
-## Is It Really a Support Issue
+## Search GitHub issues first; create an issue if necessary
 
-If you aren't sure if your contribution is needed or necessary, please visit the [support forum][] before attempting to
-submit a pull request or a ticket.
-
-## Search Dojo Toolkit's Bug Database
-
-We require every commit to be tracked via our [bug database][].  It is useful, before you get too far, that you have
-checked that your issue isn't already known, otherwise addressed?  If you think it is a valid defect or enhancement,
-please open a new ticket before submitting your pull request.
+Is there already an issue that addresses your concern?  Do a bit of searching
+in our [issue tracker][] to see if you can find something similar. If not,
+please create a new issue before submitting a pull request unless the change is
+truly trivial, e.g. typo fixes, removing compiler warnings, etc.
 
 ## Discuss Non-Trivial Contributions with the Committers
 
 If your desired contribution is more than a non-trivial fix, you should discuss it on the
-[contributor's mailing list][dojo-contrib].  If you currently are not a member, you can request to be added.
+[dojo-interest mailing list](http://mail.dojotoolkit.org/mailman/listinfo/dojo-interest)
+(if you currently are not a member, you can request to be added)
+or in the #dojo IRC channel on irc.freenode.net. Web interfaces are available
+from the [Dojo Toolkit Community page](https://dojotoolkit.org/community/).
 
 ## Contributor License Agreement
 
@@ -70,16 +69,15 @@ layer of structure of how repositories can relate to each other.
 Once you have successfully forked your repository, you will need to clone it locally to your machine:
 
 ```bash
-$ git clone --recursive git@github.com:username/dojo.git
+$ git clone git@github.com:username/dgrid.git
 ```
 
-This will clone your fork to your current path in a directory named `dojo`.
+This will clone your fork to your current path in a directory named `dgrid`.
 
-It is important that you clone recursively for ``dojox``, ``demos`` or ``util``because some of the code is contained in
-submodules.  You won't be able to submit your changes to the repositories that way though.  If you are working on any of
-these sub-projects, you should contact those project leads to see if their workflow differs.
+Be sure to read dgrid's [README][dgrid-readme] and ensure you have the necessary dependencies for development and
+testing.
 
-You should also setup the `upstream` repository.  This will allow you to take changes from the "master" repository
+You should also set up the `upstream` repository.  This will allow you to take changes from the "master" repository
 and merge them into your local clone and then push them to your GitHub fork:
 
 ```bash
@@ -183,7 +181,7 @@ there are several other things that are expected when contributing to the Dojo T
 
 ## Coding Style and Linting
 
-Dojo has a very specific [coding style][styleguide].  All pull requests should adhere to this.
+dgrid follows the Dojo Toolkit's [coding style][styleguide].  All pull requests should adhere to this.
 
 ## Inline Documentation
 
@@ -212,13 +210,13 @@ that we are quite passionate and Dojo has a long history with many things that a
 unfamiliar to those who are just starting to contribute.
 
 [help documentation]: http://help.github.com/send-pull-requests
-[bug database]: http://bugs.dojotoolkit.org/
 [support forum]: http://dojotoolkit.org/community/
 [dojo-contrib]: http://mail.dojotoolkit.org/mailman/listinfo/dojo-contributors
 [cla]: http://dojofoundation.org/about/cla
 [claCheck]: http://dojofoundation.org/about/claCheck
 [Creating a Pull Request]: https://help.github.com/articles/creating-a-pull-request
 [Fork a Repo]: https://help.github.com/articles/fork-a-repo
+[dgrid-readme]: https://github.com/SitePen/dgrid/blob/master/README.md
 [styleguide]: http://dojotoolkit.org/reference-guide/developer/styleguide.html
 [DojoDoc]: http://dojotoolkit.org/reference-guide/developer/markup.html
 [D.O.H.]: http://dojotoolkit.org/reference-guide/util/doh.html
