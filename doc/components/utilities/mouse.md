@@ -19,12 +19,12 @@ Equivalent functionality can be achieved using the `dojo/on` (with `dojo/query` 
 
 | Event | `dojo/on` extension event |
 | ----- | ------------------------- |
-| `enterRow` | on.selector('.dgrid-content .dgrid-row', mouse.enter) |
-| `leaveRow` | on.selector('.dgrid-content .dgrid-row', mouse.leave) |
-| `enterCell` | on.selector('.dgrid-content .dgrid-cell', mouse.enter) |
-| `leaveCell` | on.selector('.dgrid-content .dgrid-cell', mouse.leave) |
-| `enterHeaderCell` | on.selector('.dgrid-header .dgrid-cell', mouse.enter) |
-| `leaveHeaderCell` | on.selector('.dgrid-header .dgrid-cell', mouse.leave) |
+| `enterRow` | `on.selector('.dgrid-content .dgrid-row', mouse.enter)` |
+| `leaveRow` | `on.selector('.dgrid-content .dgrid-row', mouse.leave)` |
+| `enterCell` | `on.selector('.dgrid-content .dgrid-cell', mouse.enter)` |
+| `leaveCell` | `on.selector('.dgrid-content .dgrid-cell', mouse.leave)` |
+| `enterHeaderCell` | `on.selector('.dgrid-header .dgrid-cell', mouse.enter)` |
+| `leaveHeaderCell` | `on.selector('.dgrid-header .dgrid-cell', mouse.leave)` |
 
 
 ```js
