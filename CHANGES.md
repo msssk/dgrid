@@ -27,6 +27,7 @@ The following is a rough list of changes, to be outlined more presentably later.
 * Desupported `Tree`'s `allowDupilcates` property (ensure unique IDs instead)
 * Removed deprecated functions marked for removal in 0.4; most of these have had
   `set(...)` equivalents for a long time already
+* Removed `dgrid/util/mouse` module (`dojo/mouse` module was improved in Dojo 1.8)
 
 # master (0.3.15-dev)
 
