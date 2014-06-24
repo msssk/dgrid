@@ -321,6 +321,9 @@ function(declare, lang, Deferred, listen, aspect, put){
 				rows = options.rows || this._rows,
 				container;
 
+			// TODO: consider tightening this API.
+			// Currently it's loose as a quick fix to accommodate both
+			// collections and query results (from fetchRange) with minimal changes
 			return Deferred.when(collection.fetch ? collection.fetch() : collection).then(function(resolvedResults){
 				var resolvedRows,
 					i;
