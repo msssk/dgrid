@@ -7,17 +7,12 @@ the functionality previously provided by `dgrid/util/mouse` can now be achieved 
 The `dgrid/util/mouse` module provided the following synthetic events for handling mouse movement in and out of dgrid
 rows and cells:
 
-* `enterRow`: fires when the mouse moves into a row within the body of a list
-  or grid.
-* `leaveRow`: fires when the mouse moves out of a row within the body of a list
-  or grid.
-* `enterCell`: fires when the mouse moves into a cell within the body of a grid.
-* `leaveCell`: fires when the mouse moves out of a cell within the body of a
-  grid.
-* `enterHeaderCell`: fires when the mouse moves into a cell within the header of
-  a grid.
-* `leaveHeaderCell`: fires when the mouse moves out of a cell within the header
-  of a grid.
+* `enterRow`: mouse moves into a row within the body of a list or grid
+* `leaveRow`: mouse moves out of a row within the body of a list or grid
+* `enterCell`: mouse moves into a cell within the body of a grid
+* `leaveCell`: mouse moves out of a cell within the body of a grid
+* `enterHeaderCell`: mouse moves into a cell within the header of a grid
+* `leaveHeaderCell`: mouse moves out of a cell within the header of a grid
 
 Equivalent functionality can be achieved using the `dojo/on` (with `dojo/query` loaded for event delegation) and
 `dojo/mouse` modules:
