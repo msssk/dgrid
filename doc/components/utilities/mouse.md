@@ -1,8 +1,8 @@
 # util/mouse
 
-The `util/mouse` module has been removed from dgrid 0.4. The module was introduced to compensate for deficiencies
-in Dojo's `dojo/mouse` module's handling of event bubbling. The `dojo/mouse` module was improved in Dojo 1.8 so
-the same functionality can now be achieved using `dojo/mouse` and `dgrid/util/mouse` is unnecessary.
+The `util/mouse` module has been removed from dgrid 0.4. It was introduced to compensate for deficiencies
+in the `dojo/mouse` module's handling of event bubbling. The `dojo/mouse` module was improved in Dojo 1.8, so
+the functionality previously provided by `dgrid/util/mouse` can now be achieved using `dojo/mouse`.
 
 The `dgrid/util/mouse` module provided the following synthetic events for handling mouse movement in and out of dgrid
 rows and cells:
@@ -23,7 +23,7 @@ Equivalent functionality can be achieved using the `dojo/on` (with `dojo/query` 
 `dojo/mouse` modules:
 
 | Event | `dojo/on` extension event |
-| - | - |
+| ----- | ------------------------- |
 | `enterRow` | on.selector('.dgrid-content .dgrid-row', mouse.enter) |
 | `leaveRow` | on.selector('.dgrid-content .dgrid-row', mouse.leave) |
 | `enterCell` | on.selector('.dgrid-content .dgrid-cell', mouse.enter) |
@@ -31,10 +31,6 @@ Equivalent functionality can be achieved using the `dojo/on` (with `dojo/query` 
 | `enterHeaderCell` | on.selector('.dgrid-header .dgrid-cell', mouse.enter) |
 | `leaveHeaderCell` | on.selector('.dgrid-header .dgrid-cell', mouse.leave) |
 
-The `util/mouse` module defines a number of extension events which are useful in
-situations which require the mouse moving into and/or out of rows or cells.
-These scenarios warrant extension events due to the often-problematic bubbling
-nature of the `mouseover` and `mouseout` DOM events.
 
 ```js
 require([
@@ -50,6 +46,6 @@ require([
 });
 ```
 
-These extension events can be used as indicated in the example above, further
+Extension events can be used as indicated in the example above, further
 described in the respective section of the
 [`dojo/on` Reference Guide](http://dojotoolkit.org/reference-guide/dojo/on.html#extension-events).
