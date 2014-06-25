@@ -95,8 +95,8 @@ function(declare, lang, Deferred, listen, aspect, put){
 		
 		_setCollection: function(collection){
 			// summary:
-			//		Assigns a new collection to the list,
-			//		and tells it to refresh.
+			//		Assigns a new collection to the list/grid, sets up tracking
+			//		if applicable, and tells the list/grid to refresh.
 
 			if(this._renderedCollection){
 				if(this._renderedCollection.tracking){
@@ -310,11 +310,9 @@ function(declare, lang, Deferred, listen, aspect, put){
 			return this.inherited(arguments);
 		},
 		
-		renderCollection: function(collection, beforeNode, options){
+		renderQueryResults: function(results, beforeNode, options){
 			// summary:
-			//		Renders objects from a collection as rows, before the given node.
-			//		This will listen for changes in the collection if an observe method
-			//		is available (i.e. from an Observable data store).
+			//		Renders objects from QueryResults as rows, before the given node.
 			
 			options = options || {};
 			var self = this,
@@ -322,10 +320,7 @@ function(declare, lang, Deferred, listen, aspect, put){
 				rows = options.rows || this._rows,
 				container;
 
-			// TODO: consider tightening this API.
-			// Currently it's loose as a quick fix to accommodate both
-			// collections and query results (from fetchRange) with minimal changes
-			return Deferred.when(collection.fetch ? collection.fetch() : collection).then(function(resolvedResults){
+			return Deferred.when(results).then(function(resolvedResults){
 				var resolvedRows,
 					i;
 					
