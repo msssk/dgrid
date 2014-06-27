@@ -79,8 +79,7 @@ function(declare, lang, Deferred, listen, aspect, put){
 		destroy: function(){
 			this.inherited(arguments);
 
-			// Set collection to null to clean up after existing collection
-			this.set("collection", null);
+			this._cleanupCollection();
 		},
 		
 		_configColumn: function(column){
@@ -99,21 +98,8 @@ function(declare, lang, Deferred, listen, aspect, put){
 			//		if applicable, and tells the list/grid to refresh.
 
 			if(this._renderedCollection){
-				if(this._renderedCollection.tracking){
-					this._renderedCollection.tracking.remove();
-				}
-
-				// Remove observer and existing rows so any sub-row observers will be cleaned up
-				if(this._observerHandle){
-					this._observerHandle.remove();
-					this._observerHandle = this._rows = null;
-				}
+				this._cleanupCollection();
 				this.cleanup();
-
-				// Discard dirty map, as it applied to a previous collection
-				this.dirty = {};
-
-				this._renderedCollection = null;
 			}
 
 			if(collection){
@@ -135,6 +121,26 @@ function(declare, lang, Deferred, listen, aspect, put){
 			this.collection = collection;
 			this.refresh();
 		},
+
+		_cleanupCollection: function () {
+			if (this._renderedCollection && this._renderedCollection.tracking) {
+				this._renderedCollection.tracking.remove();
+			}
+
+			// Remove observer and existing rows so any sub-row observers will be cleaned up
+			if (this._observerHandle) {
+				this._observerHandle.remove();
+				this._observerHandle = null;
+				this._rows = null;
+			}
+
+			// Discard dirty map, as it applied to a previous collection
+			this.dirty = {};
+
+			this._renderedCollection = null;
+			this.collection = null;
+		},
+
 		
 		_applySort: function(){
 			if(this.collection){
