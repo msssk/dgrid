@@ -1,5 +1,21 @@
-define(["dojo/_base/kernel", "dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred", "dojo/on", "dojo/aspect", "dojo/query", "dojo/has", "./util/misc", "put-selector/put", "xstyle/has-class", "./Grid", "dojo/_base/sniff", "xstyle/css!./css/columnset.css"],
-function(kernel, declare, lang, Deferred, listen, aspect, query, has, miscUtil, put, hasClass, Grid){
+define([
+	"dojo/_base/kernel",
+	"dojo/_base/declare",
+	"dojo/_base/lang",
+	"dojo/_base/Deferred",
+	"dojo/on",
+	"dojo/aspect",
+	"dojo/query",
+	"dojo/NodeList",
+	"dojo/has",
+	"./util/misc",
+	"put-selector/put",
+	"xstyle/has-class",
+	"./Grid",
+	"dojo/_base/sniff",
+	"xstyle/css!./css/columnset.css",
+	"dojo/NodeList-traverse"
+], function(kernel, declare, lang, Deferred, listen, aspect, query, NodeList, has, miscUtil, put, hasClass, Grid){
 	has.add("event-mousewheel", function(global, document, element){
 		return typeof element.onmousewheel !== "undefined";
 	});
@@ -33,12 +49,11 @@ function(kernel, declare, lang, Deferred, listen, aspect, query, has, miscUtil, 
 		}
 	}
 	
-	function scrollColumnSet(grid, columnSetNode, amount){
-		var id = columnSetNode.getAttribute(colsetidAttr),
-			scroller = grid._columnSetScrollers[id],
-			scrollLeft = scroller.scrollLeft + amount;
+	function scrollColumnSetTo(grid, columnSetNode, offsetLeft){
+		var id = columnSetNode.getAttribute(colsetidAttr);
+		var scroller = grid._columnSetScrollers[id];
 
-		scroller.scrollLeft = scrollLeft < 0 ? 0 : scrollLeft;
+		scroller.scrollLeft = offsetLeft < 0 ? 0 : offsetLeft;
 	}
 
 	function getColumnSetSubRows(subRows, columnSetId){
@@ -118,6 +133,7 @@ function(kernel, declare, lang, Deferred, listen, aspect, query, has, miscUtil, 
 				
 				scroller.scrollLeft = scrollLeft < 0 ? 0 : scrollLeft;
 			});
+			this.on('dgrid-cellfocusin', lang.hitch(this, '_onCellFocusIn'));
 		},
 		columnSets: [],
 		createRowCells: function(tag, each, subRows, object){
@@ -295,6 +311,44 @@ function(kernel, declare, lang, Deferred, listen, aspect, query, has, miscUtil, 
 		setColumnSets: function(columnSets){
 			kernel.deprecated("setColumnSets(...)", 'use set("columnSets", ...) instead', "dgrid 0.4");
 			this.set("columnSets", columnSets);
+		},
+
+		_onCellFocusIn: function (event) {
+			this._onBeforeFocusOnNode(event.target, false, event);
+		},
+
+		_onBeforeFocusOnNode: function (element, isHeader, event) {
+			var columnSetNode;
+			var columnSetId;
+			var columnScroller;
+			var nodeList = new NodeList();
+			var elementEdge;
+			var columnSetEdge;
+
+			if (event.type !== 'dgrid-cellfocusin' && event.type.substr(0, 3) !== 'key') {
+				return;
+			}
+
+			// Sometimes the passed element is a DOM node; sometimes it is a dgrid cell object, which has the DOM
+			// node on the 'element' property
+			element = element.element || element;
+
+			nodeList.push(element);
+			columnSetNode = nodeList.closest('.dgrid-column-set')[0];
+
+			if (columnSetNode) {
+				// When responding to the 'dgrid-cellfocusin' event, columnSetNode's offsetLeft is not always correct,
+				// so get the columnScroller to check offsetLeft against
+				columnSetId = columnSetNode.getAttribute('data-dgrid-column-set-id');
+				columnScroller = query('.dgrid-column-set-scroller-' + columnSetId, this.domNode)[0];
+				elementEdge = element.offsetLeft - columnScroller.scrollLeft + element.offsetWidth;
+				columnSetEdge = columnSetNode.offsetWidth + columnScroller.scrollLeft;
+
+				if (elementEdge > columnSetNode.offsetWidth ||
+					columnScroller.scrollLeft > element.offsetLeft) {
+					scrollColumnSetTo(this, columnSetNode, element.offsetLeft);
+				}
+			}
 		}
 	});
 });
