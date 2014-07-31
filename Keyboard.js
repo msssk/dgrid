@@ -278,8 +278,6 @@ var Keyboard = declare(null, {
 	},
 	
 	_focusOnNode: function(element, isHeader, event){
-		//this._onBeforeFocusOnNode && this._onBeforeFocusOnNode.apply(this, arguments);
-
 		var focusedNodeProperty = "_focused" + (isHeader ? "Header" : "") + "Node",
 			focusedNode = this[focusedNodeProperty],
 			cellOrRowType = this.cellNavigation ? "cell" : "row",

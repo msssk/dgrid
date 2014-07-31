@@ -314,10 +314,7 @@ define([
 		},
 
 		_onCellFocusIn: function (event) {
-			this._onBeforeFocusOnNode(event.target, false, event);
-		},
-
-		_onBeforeFocusOnNode: function (element, isHeader, event) {
+			var focusedNode = event.target;
 			var columnSetNode;
 			var columnSetId;
 			var columnScroller;
@@ -325,28 +322,24 @@ define([
 			var elementEdge;
 			var columnSetEdge;
 
-			if (event.type !== 'dgrid-cellfocusin' && event.type.substr(0, 3) !== 'key') {
+			if (event.parentType.substr(0, 3) !== 'key') {
 				return;
 			}
 
-			// Sometimes the passed element is a DOM node; sometimes it is a dgrid cell object, which has the DOM
-			// node on the 'element' property
-			element = element.element || element;
-
-			nodeList.push(element);
+			nodeList.push(focusedNode);
 			columnSetNode = nodeList.closest('.dgrid-column-set')[0];
 
 			if (columnSetNode) {
-				// When responding to the 'dgrid-cellfocusin' event, columnSetNode's offsetLeft is not always correct,
+				// columnSetNode's offsetLeft is not always correct,
 				// so get the columnScroller to check offsetLeft against
 				columnSetId = columnSetNode.getAttribute('data-dgrid-column-set-id');
 				columnScroller = query('.dgrid-column-set-scroller-' + columnSetId, this.domNode)[0];
-				elementEdge = element.offsetLeft - columnScroller.scrollLeft + element.offsetWidth;
+				elementEdge = focusedNode.offsetLeft - columnScroller.scrollLeft + focusedNode.offsetWidth;
 				columnSetEdge = columnSetNode.offsetWidth + columnScroller.scrollLeft;
 
 				if (elementEdge > columnSetNode.offsetWidth ||
-					columnScroller.scrollLeft > element.offsetLeft) {
-					scrollColumnSetTo(this, columnSetNode, element.offsetLeft);
+					columnScroller.scrollLeft > focusedNode.offsetLeft) {
+					scrollColumnSetTo(this, columnSetNode, focusedNode.offsetLeft);
 				}
 			}
 		}
