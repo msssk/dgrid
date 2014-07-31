@@ -322,18 +322,14 @@ define([
 			var elementEdge;
 			var columnSetEdge;
 
-			if (event.parentType.substr(0, 3) !== 'key') {
-				return;
-			}
-
 			nodeList.push(focusedNode);
 			columnSetNode = nodeList.closest('.dgrid-column-set')[0];
 
 			if (columnSetNode) {
 				// columnSetNode's offsetLeft is not always correct,
 				// so get the columnScroller to check offsetLeft against
-				columnSetId = columnSetNode.getAttribute('data-dgrid-column-set-id');
-				columnScroller = query('.dgrid-column-set-scroller-' + columnSetId, this.domNode)[0];
+				columnSetId = columnSetNode.getAttribute(colsetidAttr);
+				columnScroller = this._columnSetScrollers[columnSetId];
 				elementEdge = focusedNode.offsetLeft - columnScroller.scrollLeft + focusedNode.offsetWidth;
 				columnSetEdge = columnSetNode.offsetWidth + columnScroller.scrollLeft;
 
