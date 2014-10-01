@@ -84,11 +84,6 @@ h1 {
 	padding: 0 0 0 4px;
 }
 
-.featureGrid,
-.columnGrid {
-	width: 100%;
-}
-
 .buttonBar {
 	text-align: right;
 }
@@ -98,8 +93,17 @@ h1 {
 	width: 162px;
 }
 
+.columnGridContainer {
+	height: 100%;
+}
+
 .columnGrid {
-	height: 423px;
+	height: auto;
+	position: absolute;
+	top: 2.5em;
+	bottom: 0;
+	left: 0;
+	right: 0;
 }
 
 .featureGrid .field-label .fa-cog {
