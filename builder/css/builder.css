@@ -45,14 +45,24 @@ h1 {
 	margin: 8px;
 }
 
-/* FIX: incompatibility between DnD CSS and dgrid's Claro CSS */
+/* FIX: Claro's DnD styles don't adequately represent drop location and add excessive borders/padding */
 .dgrid-row.dojoDndItem {
+	border-width: 0;
+	border-top: 1px solid #fff;
+	border-bottom: 1px solid #edc;
 	padding: 0;
 }
-.dgrid-row.dojoDndItemAnchor,
-.dgrid-row.dojoDndItemOver {
-	border: none;
+.dgrid-row.dojoDndItemBefore {
+	border-top-color: #759dc0;
 }
+.dgrid-row.dojoDndItemAfter {
+	border-bottom-color: #759dc0;
+}
+.dojoDndItem .dgrid-cell {
+	border-top: none;
+	border-bottom: none;
+}
+
 /* END DnD FIX */
 
 /* FIX: dgrid.css applies 99% width to ALL input elements */
