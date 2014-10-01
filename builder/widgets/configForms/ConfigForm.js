@@ -27,13 +27,12 @@ define([
 		buildRendering: function () {
 			this.inherited(arguments);
 
-			var buttonBar;
-
 			if (!this.containerNode) {
 				this.containerNode = this.domNode;
 			}
 
-			buttonBar = domConstruct.create('div', {
+			// Add button bar to the top of each config form (including subclasses)
+			var buttonBar = domConstruct.create('div', {
 				className: 'buttonBar'
 			});
 
@@ -41,9 +40,10 @@ define([
 				label: 'Done',
 				className: 'doneButton',
 				iconClass: 'fa fa-reply'
-			});
+			}).placeAt(buttonBar);
 
-			this.doneButton.placeAt(buttonBar);
+			this._startupWidgets.push(this.doneButton);
+
 			domConstruct.place(buttonBar, this.domNode, 'first');
 
 			if (this.documentationUrl && this.moduleName) {
@@ -101,7 +101,7 @@ define([
 
 			arrayUtil.forEach(this._descendants, function (widget) {
 				if (widget.name && widget.name in this.defaultsObject) {
-					defaultValues[widget.name] = String(this.defaultsObject[widget.name]);
+					defaultValues[widget.name] = '' + this.defaultsObject[widget.name];
 				}
 			}, this);
 
