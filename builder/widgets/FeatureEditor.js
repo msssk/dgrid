@@ -11,7 +11,7 @@ define([
 	'dijit/layout/StackContainer',
 	'./FeatureGrid',
 	'../data/features'
-], function (require, arrayUtil, declare, lang, aspect, topic, MemoryStore, TrackableMixin, TreeMixin, StackContainer,
+], function (require, arrayUtil, declare, lang, aspect, topic, Memory, Trackable, Tree, StackContainer,
 	FeatureGrid, featureData) {
 
 	return declare(StackContainer, {
@@ -25,7 +25,7 @@ define([
 
 			this.configPanes = {};
 
-			this.store = new (declare([MemoryStore, TrackableMixin, TreeMixin], {
+			this.store = new (declare([Memory, Trackable, Tree], {
 				mayHaveChildren: function (item) {
 					return !('parentId' in item);
 				},

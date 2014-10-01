@@ -4,11 +4,9 @@ define([
 	'dojo/aspect',
 	'dojo/topic',
 	'dijit/layout/StackContainer',
-	'dstore/Memory',
-	'dstore/Trackable',
 	'./ColumnConfigForm',
 	'./ColumnGrid'
-], function (declare, lang, aspect, topic, StackContainer, MemoryStore, TrackableMixin, ColumnConfigForm, ColumnGrid) {
+], function (declare, lang, aspect, topic, StackContainer, ColumnConfigForm, ColumnGrid) {
 	return declare(StackContainer, {
 		baseClass: 'columnEditor',
 

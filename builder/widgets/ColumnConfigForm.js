@@ -72,6 +72,7 @@ define([
 		},
 
 		postCreate: function () {
+			this.inherited(arguments);
 			this.own(
 				on(this.doneButton, 'click', lang.hitch(this, 'onClose')),
 				topic.subscribe('/feature/select', lang.hitch(this, '_onFeatureSelect')),

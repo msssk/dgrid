@@ -28,7 +28,7 @@ define([
 	'dijit/layout/StackContainer',
 	'dijit/layout/TabContainer'
 ], function (require, arrayUtil, declare, lang, aspect, domClass, on, string, topic, _TemplatedMixin,
-	_WidgetsInTemplateMixin, BorderContainer, MemoryStore, TrackableMixin, TreeStoreMixin, ColumnEditor, FeatureEditor,
+	_WidgetsInTemplateMixin, BorderContainer, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor,
 	toJavaScript, template, codeTemplate) {
 
 	return declare([BorderContainer, _TemplatedMixin, _WidgetsInTemplateMixin], {
@@ -38,15 +38,15 @@ define([
 			this.inherited(arguments);
 
 			this.featureEditor = new FeatureEditor({
-				region: 'leading',
+				region: 'left',
 				splitter: true,
 				minSize: 385
 			}, this.featureEditorNode);
 
 			this.columnEditor = new ColumnEditor({
-				region: 'leading',
+				region: 'left',
 				splitter: true,
-				minSize: 452
+				minSize: 460
 			}, this.columnEditorNode);
 		},
 
@@ -88,11 +88,11 @@ define([
 				return;
 			}
 
-			if (domClass.contains(this.demoGridPane.domNode.parentNode, 'dijitHidden')) {
-				this._showCode();
+			if (this.previewTabs.selectedChildWidget === this.demoGridPane) {
+				this._showDemoGrid();
 			}
 			else {
-				this._showDemoGrid();
+				this._showCode();
 			}
 		},
 
@@ -127,7 +127,7 @@ define([
 			}
 
 			if (hasStore) {
-				storeModules = ['MemoryStore', 'Trackable'];
+				storeModules = ['Memory', 'Trackable'];
 
 				if (treeExpandoColumn) {
 						storeModules.push('TreeStoreMixin');
@@ -168,7 +168,7 @@ define([
 
 			if (hasStore) {
 				gridConfig.dependencies += ",\n\t'dstore/Memory'";
-				gridConfig.callbackParams += ', MemoryStore';
+				gridConfig.callbackParams += ', Memory';
 				gridConfig.dependencies += ",\n\t'dstore/Trackable'";
 				gridConfig.callbackParams += ', Trackable';
 
@@ -177,7 +177,7 @@ define([
 					gridConfig.callbackParams += ', TreeStoreMixin';
 				}
 
-				gridConfig.storeDeclaration = '\n\tvar store = new (declare([MemoryStore, Trackable]))({\n' +
+				gridConfig.storeDeclaration = '\n\tvar store = new (declare([Memory, Trackable]))({\n' +
 					'\t\tdata: data\n\t});\n';
 				gridConfig.storeAssignment = "\n\tgrid.set('collection', store);";
 			}
@@ -238,10 +238,10 @@ define([
 				var storeModules;
 				var store;
 
-				gridOptions.class = 'demoGrid';
+				gridOptions.className = 'demoGrid';
 
 				if (hasStore) {
-					storeModules = [MemoryStore, TrackableMixin];
+					storeModules = [Memory, Trackable];
 
 					if (isTree) {
 						storeModules.push(TreeStoreMixin);
