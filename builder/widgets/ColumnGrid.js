@@ -26,19 +26,21 @@ define([
 
 	function renderDragSourceCell (item, value, node) {
 		domClass.add(node, 'dojoDndHandle');
-		node.innerHTML = '<i class="fa fa-bars" title="Drag to move"></i>';
+		node.innerHTML = '<i class="icon-navicon" title="Drag to move"></i>';
 	}
 
-	return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin ], {
 		baseClass: 'columnGridContainer',
 		templateString: template,
 
 		buildRendering: function () {
 			this.inherited(arguments);
 
-			this.store = new (declare([Memory, Trackable]))();
+			this.store = new (declare([ Memory, Trackable ]))({
+				idProperty: 'field'
+			});
 
-			this.grid = new (declare([OnDemandGrid, Editor, DnD, DijitRegistry], {
+			this.grid = new (declare([ OnDemandGrid, Editor, DnD, DijitRegistry ], {
 				columns: {
 					dragSource: {
 						label: '',
@@ -62,8 +64,8 @@ define([
 					config: {
 						label: '',
 						formatter: function () {
-							return '<i class="fa fa-times" title="Delete"></i> ' +
-								'<i class="fa fa-cog" title="Edit"></i>';
+							return '<i class="icon-gear" title="Edit"></i> ' +
+								'<i class="icon-times" title="Delete"></i>';
 						},
 						sortable: false
 					}
@@ -82,9 +84,9 @@ define([
 		postCreate: function () {
 			this.inherited(arguments);
 			this.own(
-				this.store.on(['add', 'remove', 'update'], lang.hitch(this, '_onStoreChange')),
-				this.grid.on('.fa-times:click', lang.hitch(this, '_removeColumn')),
-				this.grid.on('.fa-cog:click', lang.hitch(this, '_editColumn')),
+				this.store.on(['add', 'delete', 'update'], lang.hitch(this, '_onStoreChange')),
+				this.grid.on('.icon-times:click', lang.hitch(this, '_removeColumn')),
+				this.grid.on('.icon-gear:click', lang.hitch(this, '_editColumn')),
 				topic.subscribe('/column/changed', lang.hitch(this, '_onColumnChange'))
 			);
 		},
