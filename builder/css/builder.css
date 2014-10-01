@@ -37,7 +37,7 @@ h1 {
 	color: rgb(34, 85, 141);
 }
 
-.claro .dijitBorderContainer-dijitContentPane.topPane {
+.dijitBorderContainer-dijitContentPane.topPane {
 	padding: 0;
 }
 
@@ -202,12 +202,21 @@ h1 {
 	font-size: 16px;
 }
 
-.demoGrid {
-	height: 500px;
+.dijitTabContainer .demoGridPane,
+.dijitTabContainer .demoCodePane {
+	padding: 0;
 }
 
-.gridCode {
-	display: block;
-	width: 500px;
-	height: 500px;
+.demoGrid,
+.demoCode {
+	/* Not entirely sure why, but this combination works best.  Blame Dijit Layout? */
+	position: absolute;
+	height: auto;
+	width: 100%;
+	top: 0;
+	bottom: 0;
+}
+
+.demoCode {
+	border: none;
 }
