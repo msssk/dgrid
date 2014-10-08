@@ -84,7 +84,7 @@ define([
 		postCreate: function () {
 			this.inherited(arguments);
 			this.own(
-				this.store.on(['add', 'remove', 'update'], lang.hitch(this, '_onStoreChange')),
+				this.store.on(['add', 'delete', 'update'], lang.hitch(this, '_onStoreChange')),
 				this.grid.on('.fa-times:click', lang.hitch(this, '_removeColumn')),
 				this.grid.on('.fa-cog:click', lang.hitch(this, '_editColumn')),
 				topic.subscribe('/column/changed', lang.hitch(this, '_onColumnChange'))

@@ -78,7 +78,7 @@ define([
 
 			this.own(
 				this.grid.on('.fa-cog:click', lang.hitch(this, '_showModuleConfig')),
-				this.store.on(['add', 'remove', 'update'], lang.hitch(this, '_onUpdateStore'))
+				this.store.on(['add', 'delete', 'update'], lang.hitch(this, '_onUpdateStore'))
 			);
 		},
 
