@@ -7,7 +7,7 @@ define([
 	'dgrid/Tree',
 	'dgrid/Editor',
 	'dgrid/extensions/DijitRegistry',
-	'dijit/Tooltip',
+	'dijit/Tooltip'
 ], function (arrayUtil, declare, lang, topic, OnDemandGrid, Tree, Editor, DijitRegistry, Tooltip) {
 	// Render the label cell, adding the doc link, tooltip icon, and config icon when appropriate
 	function renderLabelCell (item, value, node) {

@@ -11,12 +11,13 @@ define([
 	'dijit/_WidgetsInTemplateMixin',
 	'dijit/form/_FormMixin',
 	'dijit/form/Button'
-], function (arrayUtil, declare, lang, domConstruct, on, string, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
-	_FormMixin, Button) {
+], function (arrayUtil, declare, lang, domConstruct, on, string, topic,
+		_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _FormMixin, Button) {
 
 	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _FormMixin ], {
 		baseClass: 'configForm',
-		documentationUrlTemplate: '<a href="${documentationUrl}" target="_blank">${moduleName} documentation</a> <i class="fa fa-external-link"></i>',
+		documentationUrlTemplate: '<a href="${documentationUrl}" target="_blank">${moduleName} documentation</a> ' +
+			'<i class="fa fa-external-link"></i>',
 
 		// This should be over-ridden by sub-classes and define an object with properties that specify default
 		// configuration values for the module

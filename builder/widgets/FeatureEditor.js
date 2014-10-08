@@ -114,7 +114,10 @@ define([
 			this.grid.set('gridModule', value);
 
 			if (value === 'OnDemandGrid') {
-				paginationRow = this.store.filter({ mid: 'dgrid/extensions/Pagination', selected: true }).fetchSync()[0];
+				paginationRow = this.store.filter({
+					mid: 'dgrid/extensions/Pagination',
+					selected: true
+				}).fetchSync()[0];
 
 				if (paginationRow) {
 					paginationRow.selected = false;
