@@ -15,10 +15,6 @@ body {
 	font-family: Arial, Helvetica, sans-serif;
 }
 
-* {
-	box-sizing: border-box;
-}
-
 textarea {
 	-moz-tab-size: 4;
 	tab-size: 4;
@@ -62,14 +58,7 @@ h1 {
 	border-top: none;
 	border-bottom: none;
 }
-
 /* END DnD FIX */
-
-/* FIX: dgrid.css applies 99% width to ALL input elements */
-.dgrid-input {
-	width: auto;
-}
-/* END input width fix */
 
 .actionLink {
 	color: rgb(53, 101, 143);
@@ -78,15 +67,25 @@ h1 {
 }
 
 .featureEditor {
-	width: 385px;
+	width: 360px;
 }
 
 .featureEditor .dgrid {
 	border: none;
 }
 
+.featureGrid .field-label .fa-cog {
+	cursor: pointer;
+	float: right;
+}
+
+.featureGrid .field-selected {
+	text-align: center;
+	width: 40px;
+}
+
 .columnEditor {
-	width: 460px;
+	width: 400px;
 }
 
 .claro .columnEditor .dijitContentPane {
@@ -98,9 +97,18 @@ h1 {
 	text-align: right;
 }
 
-.columnInfoTextBox {
-	margin: 0 6px 0 0;
-	width: 162px;
+.columnEditor .dijitTextBox {
+	margin: 0 4px 0 0;
+	width: 135px;
+}
+
+.columnEditor .dijitButton {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.columnGridForm {
+	text-align: center;
 }
 
 .columnGridContainer {
@@ -116,18 +124,11 @@ h1 {
 	right: 0;
 }
 
-.featureGrid .field-label .fa-cog {
-	cursor: pointer;
-	float: right;
-}
-
-.featureGrid .field-selected {
+.columnGrid .dgrid-cell {
 	text-align: center;
-	width: 40px;
 }
 
 .columnGrid .field-dragSource {
-	text-align: center;
 	vertical-align: middle;
 	width: 26px;
 }
@@ -141,6 +142,10 @@ h1 {
 	cursor: pointer;
 }
 
+.columnGrid input {
+	width: 97%;
+}
+
 .columnGrid .dojoDndHandle {
 	cursor: move;
 	cursor: -moz-grab;
@@ -148,12 +153,12 @@ h1 {
 	cursor: grab;
 }
 
-.columnGrid .field-config .fa-times {
+.columnGrid .fa-times {
 	float: left;
 	margin-left: 3px;
 }
 
-.columnGrid .field-config .fa-cog {
+.columnGrid .fa-cog {
 	float: right;
 	margin-right: 2px;
 }
@@ -181,16 +186,16 @@ h1 {
 	clear: both;
 	float: left;
 	vertical-align: top;
-	width: 180px;
+	width: 175px;
 }
 
 .featureEditor .configForm .dijitTextBox,
 .featureEditor .configForm .dijitMultiSelect {
-	width: 180px;
+	width: 160px;
 }
 
 .featureEditor .configForm .dijitTextBox.halfWidth {
-	width: 90px;
+	width: 80px;
 }
 
 .configForm.column .dijitTextBox,
@@ -209,14 +214,16 @@ h1 {
 
 .demoGrid,
 .demoCode {
-	/* Not entirely sure why, but this combination works best.  Blame Dijit Layout? */
+	/*
+		position: absolute is required to prevent extra scrollbars (zeroing margin+padding+border doesn't help).
+		Blame Dijit Layout?
+	*/
 	position: absolute;
-	height: auto;
+	height: 100%;
 	width: 100%;
-	top: 0;
-	bottom: 0;
 }
 
 .demoCode {
 	border: none;
+	resize: none;
 }
