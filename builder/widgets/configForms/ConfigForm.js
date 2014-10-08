@@ -23,6 +23,10 @@ define([
 		// configuration values for the module
 		defaultsObject: {},
 
+		documentationUrl: '',
+
+		moduleName: '',
+
 		_isValueBroadcastEnabled: true,
 
 		buildRendering: function () {
