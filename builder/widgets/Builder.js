@@ -102,14 +102,15 @@ define([
 
 		_getCode: function () {
 			var gridConfig = {
-				dependencies: "'dojo/_base/declare'",
-				callbackParams: 'declare',
-				gridModules: '',
 				gridOptions: '{\n',
 				dataDeclaration: '',
 				dataCreation: '',
 				gridRender: ''
 			};
+			// deps, prams, and grid modules are built as arrays then joined when assigned to gridConfig
+			var dependencies = [ 'dojo/_base/declare' ];
+			var callbackParams = [ 'declare' ];
+			var gridModules = [];
 			var gridOptions = this._getGridOptions();
 			var columnNames = [];
 			var columnName;
@@ -152,7 +153,7 @@ define([
 				'\n\t\t\tdata.push({});' +
 				'\n\t\t\tfor (column in { ' + columnNames.join(': 1, ') + ': 1 }) {' +
 				'\n\t\t\t\tdata[i].id = i;' +
-				"\n\t\t\t\tdata[i][column] = column + '_' + (i + 1);" +
+				'\n\t\t\t\tdata[i][column] = column + \'_\' + (i + 1);' +
 				'\n\t\t\t}';
 
 			if (treeExpandoColumn) {
@@ -167,19 +168,17 @@ define([
 				'\n\t}';
 
 			if (hasStore) {
-				gridConfig.dependencies += ",\n\t'dstore/Memory'";
-				gridConfig.callbackParams += ', Memory';
-				gridConfig.dependencies += ",\n\t'dstore/Trackable'";
-				gridConfig.callbackParams += ', Trackable';
+				dependencies.push('dstore/Memory', 'dstore/Trackable');
+				callbackParams.push('Memory', 'Trackable');
 
 				if (treeExpandoColumn) {
-					gridConfig.dependencies += ",\n\t'dstore/Tree'";
-					gridConfig.callbackParams += ', TreeStoreMixin';
+					dependencies.push('dstore/Tree');
+					callbackParams.push('TreeStoreMixin');
 				}
 
 				gridConfig.storeDeclaration = '\n\tvar store = new (declare([Memory, Trackable]))({\n' +
 					'\t\tdata: data\n\t});\n';
-				gridConfig.storeAssignment = "\n\tgrid.set('collection', store);";
+				gridConfig.storeAssignment = '\n\tgrid.set(\'collection\', store);';
 			}
 			else {
 				gridConfig.gridRender = '\n\tgrid.renderArray(data);';
@@ -195,14 +194,9 @@ define([
 
 				var moduleReference = item.mid.substr(item.mid.lastIndexOf('/') + 1);
 
-				gridConfig.dependencies += ",\n\t'" + item.mid + "'";
-				gridConfig.callbackParams += ', ' + moduleReference;
-
-				if (gridConfig.gridModules) {
-					gridConfig.gridModules += ', ';
-				}
-
-				gridConfig.gridModules += moduleReference;
+				dependencies.push(item.mid);
+				callbackParams.push(moduleReference);
+				gridModules.push(moduleReference);
 			}, this);
 
 			if (hasStore) {
@@ -211,6 +205,10 @@ define([
 
 			gridConfig.gridOptions += toJavaScript(gridOptions, { indent: 1, inline: true } );
 			gridConfig.gridOptions += '\n\t}';
+
+			gridConfig.dependencies = '\'' + dependencies.join('\',\n\t\'') + '\'';
+			gridConfig.callbackParams = callbackParams.join(', ');
+			gridConfig.gridModules = gridModules.join(', ');
 
 			return string.substitute(codeTemplate, gridConfig);
 		},

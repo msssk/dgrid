@@ -104,7 +104,7 @@ define([
 								javascript += obj[property];
 							}
 							else {
-								javascript += "'" + escapeString(obj[property]) + "'";
+								javascript += '\'' + escapeString(obj[property]) + '\'';
 							}
 
 							break;
@@ -142,7 +142,7 @@ define([
 
 	function formatPropertyName (str) {
 		if (!propertyNameRegex.test(str)) {
-			return "'" + str + "'";
+			return '\'' + str + '\'';
 		}
 		else {
 			return str;

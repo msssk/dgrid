@@ -17,7 +17,7 @@ define([], function () {
 	return [
 		{
 			id: 0,
-			label: 'Grid features',
+			label: 'Grid features'
 		},
 		{
 			id: 1.1,
@@ -95,7 +95,7 @@ define([], function () {
 			mid: 'dgrid/extensions/DijitRegistry',
 			label: 'Dijit registry',
 			documentationUrl: baseUrl + 'doc/components/extensions/DijitRegistry.md',
-			info: "Add dgrid to Dijit's registry"
+			info: 'Add dgrid to Dijit\'s registry'
 		},
 		{
 			id: 8,
@@ -108,7 +108,7 @@ define([], function () {
 		},
 		{
 			id: 1,
-			label: 'Column features',
+			label: 'Column features'
 		},
 		{
 			id: 9,
