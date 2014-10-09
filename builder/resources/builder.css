@@ -93,10 +93,6 @@ h1 {
 	padding: 0;
 }
 
-.gridTypeForm {
-	margin: 8px;
-}
-
 /* FIX: Claro's DnD styles don't adequately represent drop location and add excessive borders/padding */
 .dgrid-row.dojoDndItem {
 	border-width: 0;
@@ -126,8 +122,18 @@ h1 {
 	width: 360px;
 }
 
-.featureEditor .dgrid {
-	border: none;
+.gridTypeForm {
+	padding: 8px;
+}
+
+.featureGrid,
+.columnGrid {
+	height: auto;
+	position: absolute;
+	top: 35px;
+	bottom: 0;
+	left: 0;
+	right: 0;
 }
 
 .featureGrid .field-label .icon-gear {
@@ -138,13 +144,6 @@ h1 {
 .featureGrid .field-selected {
 	text-align: center;
 	width: 40px;
-}
-
-.featureGrid .dgrid {
-	position: absolute;
-	top: 35px;
-	bottom: 0;
-	width: 100%;
 }
 
 .columnEditor {
@@ -172,19 +171,6 @@ h1 {
 
 .columnGridForm {
 	text-align: center;
-}
-
-.columnGridContainer {
-	height: 100%;
-}
-
-.columnGrid {
-	height: auto;
-	position: absolute;
-	top: 2.5em;
-	bottom: 0;
-	left: 0;
-	right: 0;
 }
 
 .columnGrid .dgrid-content .dgrid-cell {
