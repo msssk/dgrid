@@ -107,15 +107,16 @@ define([
 
 					// If the user clicks to select Pagination...
 					if (event.value) {
-						// ...and OnDemandGrid was not selected, then we can assume gridType is 'array' and we need to
-						// switch it to 'store-based' (OnDemandGrid)
+						// ...and OnDemandGrid was not selected, then we can assume gridType is array and we need to
+						// switch it to store-based (OnDemandGrid)
 						if (!otherRow.selected) {
 							this.gridTypeForm.set('value', { gridType: 'OnDemandGrid' });
 						}
-
-						// ...but then we actually want to deselect OnDemandGrid
-						otherRow.selected = false;
-						collection.put(otherRow);
+						else {
+							// ...but we actually want to deselect OnDemandGrid
+							otherRow.selected = false;
+							collection.put(otherRow);
+						}
 					}
 					// If the user clicks to deselect Pagination then we want to select OnDemandGrid
 					else {
@@ -200,7 +201,7 @@ define([
 
 			this.own(
 				this.gridTypeForm.watch('value', function (name, oldValue, value) {
-					self.emit('select-data-source', { value: value.gridType });
+					self.set('gridModule', value.gridType);
 				}),
 				this.grid.on('.icon-gear:click', function (event) {
 					self.emit('configure-module', self.row(event).data.mid);
@@ -212,16 +213,25 @@ define([
 			// 'module' should be either 'Grid' or 'OnDemandGrid'
 
 			var collection = this.collection.root || this.collection;
-			var items = collection.filter({ mid: 'dgrid/OnDemandGrid' }).fetchSync();
+			var items;
 
-			// Select/deselect OnDemandGrid depending on 'module'
-			items[0].selected = module !== 'Grid';
-			collection.put(items[0]);
-
-			if (module === 'Grid') {
-				// Tree, DnD and Pagination require a store/collection, so if module is set to 'Grid' deselect them
+			if (module === 'OnDemandGrid') {
+				// Select OnDemandGrid, unless Pagination is already selected
 				items = collection.filter({
-					mid: /(Tree|\/extensions\/(DnD|Pagination))$/,
+					mid: 'dgrid/extensions/Pagination',
+					selected: true
+				}).fetchSync();
+
+				if (!items.length) {
+					items = collection.filter({ mid: 'dgrid/OnDemandGrid' }).fetchSync();
+					items[0].selected = true;
+					collection.put(items[0]);
+				}
+			}
+			else {
+				// Deselect any modules that require a store
+				items = collection.filter({
+					mid: /\/(OnDemandGrid|Selector|Tree|extensions\/(DnD|Pagination))$/,
 					selected: true
 				}).fetchSync();
 
