@@ -29,18 +29,18 @@ define([
 		node.innerHTML = '<i class="icon-navicon" title="Drag to move"></i>';
 	}
 
-	return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin ], {
 		baseClass: 'columnGridContainer',
 		templateString: template,
 
 		buildRendering: function () {
 			this.inherited(arguments);
 
-			this.store = new (declare([Memory, Trackable]))({
+			this.store = new (declare([ Memory, Trackable ]))({
 				idProperty: 'field'
 			});
 
-			this.grid = new (declare([OnDemandGrid, Editor, DnD, DijitRegistry], {
+			this.grid = new (declare([ OnDemandGrid, Editor, DnD, DijitRegistry ], {
 				columns: {
 					dragSource: {
 						label: '',
