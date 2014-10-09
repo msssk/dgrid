@@ -24,10 +24,8 @@ define([
 		postCreate: function () {
 			this.inherited(arguments);
 
-			this.own(
-				aspect.after(this.form, 'onClose', lang.hitch(this, '_showGrid')),
-				this.columnGrid.on('editcolumn', lang.hitch(this, '_onEditColumn'))
-			);
+			this.form.on('close', lang.hitch(this, '_showGrid'));
+			this.columnGrid.on('editcolumn', lang.hitch(this, '_onEditColumn'));
 		},
 
 		_getColumnsAttr: function () {
