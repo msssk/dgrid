@@ -3,14 +3,23 @@ define([
 	'dojo/_base/declare',
 	'dojo/_base/lang',
 	'dojo/topic',
+	'dijit/_WidgetBase',
+	'dijit/_TemplatedMixin',
+	'dijit/_WidgetsInTemplateMixin',
+	'dijit/Tooltip',
 	'dgrid/OnDemandGrid',
 	'dgrid/Tree',
 	'dgrid/Editor',
 	'dgrid/extensions/DijitRegistry',
-	'dijit/Tooltip'
-], function (arrayUtil, declare, lang, topic, OnDemandGrid, Tree, Editor, DijitRegistry, Tooltip) {
-	// Render the label cell, adding the doc link, tooltip icon, and config icon when appropriate
+	'dojo/text!./templates/FeatureGrid.html',
+	// Widgets in template
+	'dijit/form/Form',
+	'dijit/form/RadioButton'
+], function (arrayUtil, declare, lang, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Tooltip,
+		OnDemandGrid, Tree, Editor, DijitRegistry, template) {
+
 	function renderLabelCell (item, value, node) {
+		// Render the label cell, adding the doc link, tooltip icon, and config icon when appropriate
 		var cellValue = item.label;
 
 		if (item.documentationUrl) {
@@ -30,7 +39,9 @@ define([
 		node.innerHTML = cellValue;
 	}
 
-	return declare([OnDemandGrid, Tree, Editor, DijitRegistry], {
+	var CustomGrid = declare([ OnDemandGrid, Tree, Editor, DijitRegistry ], {
+		gridTypeForm: null, // Passed from FeatureGrid when instantiated
+
 		columns: {
 			label: {
 				label: 'Select grid features',
@@ -91,8 +102,6 @@ define([
 
 					break;
 
-				case 'dgrid/Tree':
-					// fall through
 				case 'dgrid/extensions/Pagination':
 					otherRow = collection.filter({ mid: 'dgrid/OnDemandGrid' }).fetchSync()[0];
 
@@ -101,7 +110,7 @@ define([
 						// ...and OnDemandGrid was not selected, then we can assume gridType is 'array' and we need to
 						// switch it to 'store-based' (OnDemandGrid)
 						if (!otherRow.selected) {
-							topic.publish('/set/gridtype', 'OnDemandGrid');
+							this.gridTypeForm.set('value', { gridType: 'OnDemandGrid' });
 						}
 
 						// ...but then we actually want to deselect OnDemandGrid
@@ -116,8 +125,13 @@ define([
 
 					break;
 
+				case 'dgrid/Selector':
+					// Fall through
+				case 'dgrid/Tree':
+					// Fall through
 				case 'dgrid/extensions/DnD':
-					// If the user clicks to select DnD, make sure a store-based config is active:
+					// If the user selects a mixin or extension that requires a store,
+					// make sure a store-based config is active:
 					// 1. If OnDemandGrid or Pagination is already selected, a store is in use
 					// 2. Otherwise select OnDemandGrid
 					if (event.value) {
@@ -127,8 +141,7 @@ define([
 						}).fetchSync();
 
 						if (!otherRow.length) {
-							// Tell the Builder to set the grid type to OnDemandGrid
-							topic.publish('/set/gridtype', 'OnDemandGrid');
+							this.gridTypeForm.set('value', { gridType: 'OnDemandGrid' });
 						}
 					}
 
@@ -155,7 +168,47 @@ define([
 			return rowNode;
 		},
 
-		_setGridModule: function (module) {
+		_showInfoTip: function (event) {
+			var row = this.row(event);
+
+			Tooltip.show(row.data.info, event.target, ['after']);
+		},
+
+		_hideInfoTip: function (event) {
+			Tooltip.hide(event.target);
+		}
+	});
+
+	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin ], {
+		templateString: template,
+
+		collection: null,
+
+		buildRendering: function () {
+			this.inherited(arguments);
+			this.grid = new CustomGrid({
+				className: 'featureGrid',
+				collection: this.collection,
+				gridTypeForm: this.gridTypeForm
+			}, this.gridNode);
+			this._startupWidgets.push(this.grid);
+		},
+
+		postCreate: function () {
+			var self = this;
+			this.inherited(arguments);
+
+			this.own(
+				this.gridTypeForm.watch('value', function (name, oldValue, value) {
+					self.emit('select-data-source', { value: value.gridType });
+				}),
+				this.grid.on('.icon-gear:click', function (event) {
+					self.emit('configure-module', self.row(event).data.mid);
+				})
+			);
+		},
+
+		_setGridModuleAttr: function (module) {
 			// 'module' should be either 'Grid' or 'OnDemandGrid'
 
 			var collection = this.collection.root || this.collection;
@@ -177,16 +230,6 @@ define([
 					collection.put(item);
 				});
 			}
-		},
-
-		_showInfoTip: function (event) {
-			var row = this.row(event);
-
-			Tooltip.show(row.data.info, event.target, ['after']);
-		},
-
-		_hideInfoTip: function (event) {
-			Tooltip.hide(event.target);
 		}
 	});
 });

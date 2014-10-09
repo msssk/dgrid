@@ -140,6 +140,13 @@ h1 {
 	width: 40px;
 }
 
+.featureGrid .dgrid {
+	position: absolute;
+	top: 35px;
+	bottom: 0;
+	width: 100%;
+}
+
 .columnEditor {
 	width: 400px;
 }
