@@ -20,12 +20,8 @@ define([
 	'dojo/text!./templates/Builder.html',
 	'dojo/text!./templates/gridCode.js',
 	'dojo/query',
-	// for template
-	'dijit/form/Button',
-	'dijit/form/Form',
-	'dijit/form/TextBox',
+	// Widgets in template
 	'dijit/layout/ContentPane',
-	'dijit/layout/StackContainer',
 	'dijit/layout/TabContainer'
 ], function (require, arrayUtil, declare, lang, aspect, domClass, on, string, topic, _TemplatedMixin,
 	_WidgetsInTemplateMixin, BorderContainer, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor,
@@ -54,24 +50,9 @@ define([
 			this.inherited(arguments);
 
 			this.own(
-				this.gridTypeForm.watch('value', lang.hitch(this, '_onSelectDataSource')),
 				topic.subscribe('/configuration/changed', lang.hitch(this, '_updateDemo')),
-				topic.subscribe('/set/gridtype', lang.hitch(this, '_onSetGridType')),
 				this.previewTabs.watch('selectedChildWidget', lang.hitch(this, '_updateDemo'))
 			);
-		},
-
-		_onSelectDataSource: function (propertyName, oldValue, newValue) {
-			this.featureEditor.set('gridModule', newValue.gridType);
-		},
-
-		_onSetGridType: function (value) {
-			var gridTypeFormValue = this.gridTypeForm.get('value');
-
-			if (gridTypeFormValue.gridType !== value) {
-				gridTypeFormValue.gridType = value;
-				this.gridTypeForm.set('value', gridTypeFormValue);
-			}
 		},
 
 		_updateDemo: function () {
@@ -116,7 +97,7 @@ define([
 			var columnName;
 			var treeExpandoColumn;
 			var storeModules;
-			var hasStore = this.gridTypeForm.get('value').gridType === 'OnDemandGrid' ||
+			var hasStore = this.featureEditor.isSelected('dgrid/OnDemandGrid') ||
 				this.featureEditor.isSelected('dgrid/extensions/Pagination');
 
 			// The expandoColumn for Tree is a special case:
@@ -219,7 +200,7 @@ define([
 			var gridModules = [];
 			var isTree = this.featureEditor.isSelected('dgrid/Tree');
 			var data = this._getMockData();
-			var hasStore = this.gridTypeForm.get('value').gridType === 'OnDemandGrid' ||
+			var hasStore = this.featureEditor.isSelected('dgrid/OnDemandGrid') ||
 				this.featureEditor.isSelected('dgrid/extensions/Pagination');
 
 			arrayUtil.forEach(this.featureEditor.filter({ selected: true }), function (item) {

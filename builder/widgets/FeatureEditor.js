@@ -12,7 +12,7 @@ define([
 	'./FeatureGrid',
 	'../data/features'
 ], function (require, arrayUtil, declare, lang, aspect, topic, Memory, Trackable, Tree, StackContainer,
-	FeatureGrid, featureData) {
+		FeatureGrid, featureData) {
 
 	return declare(StackContainer, {
 		baseClass: 'featureEditor',
@@ -36,11 +36,10 @@ define([
 				data: featureData
 			});
 
-			this.grid = new FeatureGrid({
-				collection: this.store.filter('mayHaveChildren'),
-				className: 'featureGrid'
+			this.featureGrid = new FeatureGrid({
+				collection: this.store.filter('mayHaveChildren')
 			});
-			this.addChild(this.grid);
+			this.addChild(this.featureGrid);
 
 			arrayUtil.forEach(featureData, function (feature) {
 				if (feature.configModule) {
@@ -61,7 +60,7 @@ define([
 						});
 
 						configPane.on('close', function () {
-							self.selectChild(self.grid);
+							self.selectChild(self.featureGrid);
 						});
 
 						this.addChild(configPane);
@@ -75,17 +74,20 @@ define([
 			this.inherited(arguments);
 
 			this.own(
-				this.grid.on('.icon-gear:click', lang.hitch(this, '_showModuleConfig')),
+				this.featureGrid.on('select-data-source', lang.hitch(this, function (event) {
+					this.set('gridModule', event.value);
+				})),
+				this.featureGrid.on('configure-module', lang.hitch(this, '_showModuleConfig')),
 				this.store.on(['add', 'delete', 'update'], lang.hitch(this, '_onUpdateStore'))
 			);
 		},
 
 		isSelected: function (moduleId) {
-			return this.store && this.store.filter({ mid: moduleId, selected: true }).fetchSync().length;
+			return this.store.filter({ mid: moduleId, selected: true }).fetchSync().length;
 		},
 
 		filter: function (query) {
-			return this.store && this.store.filter(query).fetchSync();
+			return this.store.filter(query).fetchSync();
 		},
 
 		getModuleConfig: function (mid) {
@@ -93,8 +95,7 @@ define([
 		},
 
 		_showModuleConfig: function (event) {
-			var row = this.grid.row(event);
-			var configPane = this.configPanes[row.data.mid];
+			var configPane = this.configPanes[event.mid];
 
 			if (configPane) {
 				this.selectChild(configPane);
@@ -109,7 +110,7 @@ define([
 		_setGridModuleAttr: function (value) {
 			var paginationRow;
 
-			this.grid.set('gridModule', value);
+			this.featureGrid.set('gridModule', value);
 
 			if (value === 'OnDemandGrid') {
 				paginationRow = this.store.filter({
