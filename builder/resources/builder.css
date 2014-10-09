@@ -8,6 +8,7 @@ body {
 
 body {
 	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
 }
 
 .dijitBorderContainer {
@@ -74,6 +75,7 @@ body {
 }
 
 textarea {
+	font-family: Consolas, monospace;
 	-moz-tab-size: 4;
 	tab-size: 4;
 }
@@ -178,13 +180,14 @@ h1 {
 	right: 0;
 }
 
-.columnGrid .dgrid-cell {
+.columnGrid .dgrid-content .dgrid-cell {
 	text-align: center;
 }
 
 .columnGrid .field-dragSource {
 	vertical-align: middle;
 	width: 26px;
+	font-size: 20px;
 }
 
 .columnGrid .field-config {
@@ -205,16 +208,6 @@ h1 {
 	cursor: -moz-grab;
 	cursor: -webkit-grab;
 	cursor: grab;
-}
-
-.columnGrid .icon-times {
-	float: left;
-	margin-left: 3px;
-}
-
-.columnGrid .icon-gear {
-	float: right;
-	margin-right: 2px;
 }
 
 .configForm {
@@ -254,7 +247,7 @@ h1 {
 
 .configForm.column .dijitTextBox,
 .configForm.column .dijitMultiSelect {
-	width: 240px;
+	width: 195px;
 }
 
 .configForm .dijitMultiSelect {
