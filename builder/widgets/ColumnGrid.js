@@ -64,8 +64,8 @@ define([
 					config: {
 						label: '',
 						formatter: function () {
-							return '<i class="icon-times" title="Delete"></i> ' +
-								'<i class="icon-gear" title="Edit"></i>';
+							return '<i class="icon-gear" title="Edit"></i> ' +
+								'<i class="icon-times" title="Delete"></i>';
 						},
 						sortable: false
 					}
