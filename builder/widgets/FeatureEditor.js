@@ -77,7 +77,7 @@ define([
 			this.inherited(arguments);
 
 			this.own(
-				this.grid.on('.fa-cog:click', lang.hitch(this, '_showModuleConfig')),
+				this.grid.on('.icon-gear:click', lang.hitch(this, '_showModuleConfig')),
 				this.store.on(['add', 'delete', 'update'], lang.hitch(this, '_onUpdateStore'))
 			);
 		},
