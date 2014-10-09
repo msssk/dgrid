@@ -122,7 +122,7 @@ define([
 					// 2. Otherwise select OnDemandGrid
 					if (event.value) {
 						otherRow = collection.filter({
-							mid: /dgrid\/(OnDemandGrid|extensions\/Pagination)/,
+							mid: /(OnDemandGrid|Pagination)$/,
 							selected: true
 						}).fetchSync();
 
@@ -140,19 +140,16 @@ define([
 			return true;
 		},
 
-		insertRow: function () {
+		insertRow: function (object) {
 			// This method ensures that the editor (checkbox) rendered for the Grid and OnDemandGrid rows
 			// is always disabled
 
 			var rowNode = this.inherited(arguments);
 			var cell = this.cell(rowNode, 'selected');
+			var mid = object.mid;
 
-			switch (cell.row.data.mid) {
-				case 'dgrid/Grid':
-					// fall through
-				case 'dgrid/OnDemandGrid':
-					cell.element.input.disabled = true;
-					break;
+			if (mid === 'dgrid/Grid' || mid === 'dgrid/OnDemandGrid') {
+				cell.element.input.disabled = true;
 			}
 
 			return rowNode;
@@ -171,7 +168,7 @@ define([
 			if (module === 'Grid') {
 				// Tree, DnD and Pagination require a store/collection, so if module is set to 'Grid' deselect them
 				items = collection.filter({
-					mid: /dgrid\/(Tree|\/extensions\/(DnD|Pagination))/,
+					mid: /(Tree|\/extensions\/(DnD|Pagination))$/,
 					selected: true
 				}).fetchSync();
 
