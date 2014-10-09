@@ -15,16 +15,16 @@ define([
 
 		if (item.documentationUrl) {
 			cellValue = '<a href="' + item.documentationUrl + '" target="_blank">' + cellValue;
-			cellValue += '</a> <i class="fa fa-external-link"></i>';
+			cellValue += '</a> <i class="icon-external-link"></i>';
 		}
 
 		if (item.info) {
-			cellValue += ' <i class="fa fa-info-circle"></i>';
+			cellValue += ' <i class="icon-info-circle"></i>';
 		}
 
 		// If configModule has not been defined there's no config widget to display
 		if (item.configLevel === 'grid' && item.configModule) {
-			cellValue += ' <i class="fa fa-cog"></i>';
+			cellValue += ' <i class="icon-gear"></i>';
 		}
 
 		node.innerHTML = cellValue;
@@ -53,8 +53,8 @@ define([
 			this.inherited(arguments);
 
 			this.on('dgrid-datachange', lang.hitch(this, '_onDataChange'));
-			this.on('.fa-info-circle:mouseover', lang.hitch(this, '_showInfoTip'));
-			this.on('.fa-info-circle:mouseout', lang.hitch(this, '_hideInfoTip'));
+			this.on('.icon-info-circle:mouseover', lang.hitch(this, '_showInfoTip'));
+			this.on('.icon-info-circle:mouseout', lang.hitch(this, '_hideInfoTip'));
 		},
 
 		_onDataChange: function (event) {

@@ -17,7 +17,7 @@ define([
 	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _FormMixin ], {
 		baseClass: 'configForm',
 		documentationUrlTemplate: '<a href="${documentationUrl}" target="_blank">${moduleName} documentation</a> ' +
-			'<i class="fa fa-external-link"></i>',
+			'<i class="icon-external-link"></i>',
 
 		// This should be over-ridden by sub-classes and define an object with properties that specify default
 		// configuration values for the module
@@ -44,7 +44,7 @@ define([
 			this.doneButton = new Button({
 				label: 'Done',
 				className: 'doneButton',
-				iconClass: 'fa fa-reply'
+				iconClass: 'icon-mail-reply'
 			}).placeAt(buttonBar);
 
 			this._startupWidgets.push(this.doneButton);

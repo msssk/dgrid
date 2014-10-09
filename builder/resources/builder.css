@@ -6,13 +6,71 @@ body {
 	overflow: hidden;
 }
 
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
 .dijitBorderContainer {
 	height: 100%;
 	width: 100%;
 }
 
-body {
-	font-family: Arial, Helvetica, sans-serif;
+/* Icon Font */
+
+@font-face {
+	font-family: 'icomoon';
+	src:url('fonts/icomoon.eot?kn321z');
+	src:url('fonts/icomoon.eot?#iefixkn321z') format('embedded-opentype'),
+		url('fonts/icomoon.woff?kn321z') format('woff'),
+		url('fonts/icomoon.ttf?kn321z') format('truetype'),
+		url('fonts/icomoon.svg?kn321z#icomoon') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+	font-family: 'icomoon';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+
+	/* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.icon-times:before {
+	content: "\f00d";
+}
+.icon-gear:before {
+	content: "\f013";
+}
+.icon-info-circle:before {
+	content: "\f05a";
+}
+.icon-external-link:before {
+	content: "\f08e";
+}
+.icon-navicon:before {
+	content: "\f0c9";
+}
+.icon-angle-up:before {
+	content: "\f106";
+}
+.icon-angle-down:before {
+	content: "\f107";
+}
+.icon-mail-reply:before {
+	content: "\f112";
+}
+
+/* End Icon Font */
+
+[class^="icon-"], [class*=" icon-"] {
+	color: rgb(34, 85, 141);
 }
 
 textarea {
@@ -27,10 +85,6 @@ h1 {
 	font-weight: normal;
 	margin: 0 0 6px 0;
 	padding: 5px;
-}
-
-.fa {
-	color: rgb(34, 85, 141);
 }
 
 .dijitBorderContainer-dijitContentPane.topPane {
@@ -74,7 +128,7 @@ h1 {
 	border: none;
 }
 
-.featureGrid .field-label .fa-cog {
+.featureGrid .field-label .icon-gear {
 	cursor: pointer;
 	float: right;
 }
@@ -138,7 +192,7 @@ h1 {
 	width: 45px;
 }
 
-.columnGrid .field-config .fa {
+.columnGrid .field-config [class^="icon-"] {
 	cursor: pointer;
 }
 
@@ -153,12 +207,12 @@ h1 {
 	cursor: grab;
 }
 
-.columnGrid .fa-times {
+.columnGrid .icon-times {
 	float: left;
 	margin-left: 3px;
 }
 
-.columnGrid .fa-cog {
+.columnGrid .icon-gear {
 	float: right;
 	margin-right: 2px;
 }
