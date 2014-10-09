@@ -74,9 +74,6 @@ define([
 			this.inherited(arguments);
 
 			this.own(
-				this.featureGrid.on('select-data-source', lang.hitch(this, function (event) {
-					this.set('gridModule', event.value);
-				})),
 				this.featureGrid.on('configure-module', lang.hitch(this, '_showModuleConfig')),
 				this.store.on(['add', 'delete', 'update'], lang.hitch(this, '_onUpdateStore'))
 			);
@@ -105,24 +102,6 @@ define([
 		_onUpdateStore: function () {
 			// Let the Builder know that is should update the demo display (grid or generated code)
 			topic.publish('/configuration/changed');
-		},
-
-		_setGridModuleAttr: function (value) {
-			var paginationRow;
-
-			this.featureGrid.set('gridModule', value);
-
-			if (value === 'OnDemandGrid') {
-				paginationRow = this.store.filter({
-					mid: 'dgrid/extensions/Pagination',
-					selected: true
-				}).fetchSync()[0];
-
-				if (paginationRow) {
-					paginationRow.selected = false;
-					this.store.put(paginationRow);
-				}
-			}
 		},
 
 		_getExpandoColumnAttr: function () {
