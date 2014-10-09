@@ -60,16 +60,14 @@ define([
 							documentationUrl: feature.documentationUrl
 						});
 
-						self.addChild(configPane);
-						self.configPanes[feature.mid] = configPane;
+						configPane.on('close', function () {
+							self.selectChild(self.grid);
+						});
 
-						self.own(
-							aspect.after(configPane, 'onClose', function () {
-								self.selectChild(self.grid);
-							})
-						);
+						this.addChild(configPane);
+						this.configPanes[feature.mid] = configPane;
 					}
-				});
+				}, self);
 			});
 		},
 

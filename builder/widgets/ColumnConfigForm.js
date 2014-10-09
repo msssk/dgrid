@@ -74,17 +74,15 @@ define([
 		postCreate: function () {
 			this.inherited(arguments);
 			this.own(
-				on(this.doneButton, 'click', lang.hitch(this, 'onClose')),
 				topic.subscribe('/feature/select', lang.hitch(this, '_onFeatureSelect')),
+				on(this.doneButton, 'click', lang.hitch(this, function () {
+					this.emit('close');
+				})),
 				this.watch('value', function (propertyName, oldValue, newValue) {
 					// Let the ColumnGrid know the column config has changed so it an update the store
 					topic.publish('/column/changed', newValue);
 				})
 			);
-		},
-
-		// hook for external modules
-		onClose: function () {
 		},
 
 		_setValueAttr: function (value) {

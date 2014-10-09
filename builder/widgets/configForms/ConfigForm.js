@@ -58,7 +58,9 @@ define([
 
 		postCreate: function () {
 			this.own(
-				on(this.doneButton, 'click', lang.hitch(this, 'onClose')),
+				on(this.doneButton, 'click', lang.hitch(this, function () {
+					this.emit('close');
+				})),
 				this.watch('value', lang.hitch(this, function () {
 					if (this._isValueBroadcastEnabled) {
 						// Let the Builder know that is should update the demo display (grid or generated code)
@@ -73,10 +75,6 @@ define([
 
 			// This must be done in startup: _FormMixin doesn't set this._descendants until startup
 			this._setDefaultValues();
-		},
-
-		// hook for external modules
-		onClose: function () {
 		},
 
 		_getValueAttr: function () {
