@@ -2,6 +2,7 @@ define([
 	'dojo/_base/array',
 	'dojo/_base/declare',
 	'dojo/_base/lang',
+	'dojo/dom-geometry',
 	'dojo/topic',
 	'dijit/_WidgetBase',
 	'dijit/_TemplatedMixin',
@@ -15,8 +16,8 @@ define([
 	// Widgets in template
 	'dijit/form/Form',
 	'dijit/form/RadioButton'
-], function (arrayUtil, declare, lang, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Tooltip,
-		OnDemandGrid, Tree, Editor, DijitRegistry, template) {
+], function (arrayUtil, declare, lang, domGeometry, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
+		Tooltip, OnDemandGrid, Tree, Editor, DijitRegistry, template) {
 
 	function renderLabelCell (item, value, node) {
 		// Render the label cell, adding the doc link, tooltip icon, and config icon when appropriate
@@ -181,6 +182,7 @@ define([
 	});
 
 	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin ], {
+		className: 'featureGridContainer',
 		templateString: template,
 
 		collection: null,
@@ -207,6 +209,14 @@ define([
 					self.emit('configure-module', self.row(event).data.mid);
 				})
 			);
+		},
+
+		resize: function (changeSize) {
+			if (changeSize) {
+				domGeometry.setMarginBox(this.domNode, changeSize);
+			}
+			this.grid.resize();
+			this.inherited(arguments);
 		},
 
 		_setGridModuleAttr: function (module) {
