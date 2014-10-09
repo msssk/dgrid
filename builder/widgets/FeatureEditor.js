@@ -25,12 +25,12 @@ define([
 
 			this.configPanes = {};
 
-			this.store = new (declare([Memory, Trackable, Tree], {
+			this.store = new (declare([ Memory, Trackable, Tree ], {
 				mayHaveChildren: function (item) {
 					return !('parentId' in item);
 				},
 				getChildren: function (item) {
-					return this.root.filter({ parentId: item.id });
+					return this.root.filter({ parentId: this.getIdentity(item) });
 				}
 			}))({
 				data: featureData

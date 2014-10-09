@@ -27,7 +27,7 @@ define([
 	_WidgetsInTemplateMixin, BorderContainer, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor,
 	toJavaScript, template, codeTemplate) {
 
-	return declare([BorderContainer, _TemplatedMixin, _WidgetsInTemplateMixin], {
+	return declare([ BorderContainer, _TemplatedMixin, _WidgetsInTemplateMixin ], {
 		templateString: template,
 
 		buildRendering: function () {
@@ -157,7 +157,7 @@ define([
 					callbackParams.push('TreeStoreMixin');
 				}
 
-				gridConfig.storeDeclaration = '\n\tvar store = new (declare([Memory, Trackable]))({\n' +
+				gridConfig.storeDeclaration = '\n\tvar store = new (declare([ Memory, Trackable ]))({\n' +
 					'\t\tdata: data\n\t});\n';
 				gridConfig.storeAssignment = '\n\tgrid.set(\'collection\', store);';
 			}

@@ -49,7 +49,7 @@ define([
 		selector: ''
 	};
 
-	return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _FormMixin], {
+	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _FormMixin ], {
 		baseClass: 'configForm column',
 		templateString: template,
 
