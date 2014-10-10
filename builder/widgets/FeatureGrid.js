@@ -206,7 +206,7 @@ define([
 					self.set('gridModule', value.gridType);
 				}),
 				this.grid.on('.icon-gear:click', function (event) {
-					self.emit('configure-module', self.row(event).data.mid);
+					self.emit('configure-module', { mid: self.grid.row(event).data.mid });
 				})
 			);
 		},
