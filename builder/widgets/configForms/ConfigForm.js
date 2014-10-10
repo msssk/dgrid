@@ -16,8 +16,7 @@ define([
 
 	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _FormMixin ], {
 		baseClass: 'configForm',
-		documentationUrlTemplate: '<a href="${documentationUrl}" target="_blank">${moduleName} documentation</a> ' +
-			'<i class="icon-external-link"></i>',
+		documentationUrlTemplate: '<a href="${documentationUrl}" target="_blank">${moduleName} documentation</a>',
 
 		// This should be over-ridden by sub-classes and define an object with properties that specify default
 		// configuration values for the module

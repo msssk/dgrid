@@ -11,6 +11,7 @@ define([
 	'dijit/_TemplatedMixin',
 	'dijit/_WidgetsInTemplateMixin',
 	'dijit/form/_FormMixin',
+	'../data/config',
 	'dojo/text!./templates/ColumnConfigForm.html',
 	// for template
 	'dijit/form/Button',
@@ -19,7 +20,7 @@ define([
 	'dijit/form/RadioButton',
 	'dijit/form/TextBox'
 ], function (arrayUtil, declare, lang, domClass, on, query, topic, registry, _WidgetBase, _TemplatedMixin,
-	_WidgetsInTemplateMixin, _FormMixin, template) {
+	_WidgetsInTemplateMixin, _FormMixin, config, template) {
 
 	var defaultColumnValues = {
 		// Standard column properties
@@ -52,6 +53,7 @@ define([
 	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _FormMixin ], {
 		baseClass: 'configForm column',
 		templateString: template,
+		docBaseUrl: config.docBaseUrl,
 
 		_featureMidToNodeMap: null,
 

@@ -24,8 +24,7 @@ define([
 		var cellValue = item.label;
 
 		if (item.documentationUrl) {
-			cellValue = '<a href="' + item.documentationUrl + '" target="_blank">' + cellValue;
-			cellValue += '</a> <i class="icon-external-link"></i>';
+			cellValue = '<a href="' + item.documentationUrl + '" target="_blank">' + cellValue + '</a>';
 		}
 
 		if (item.info) {
