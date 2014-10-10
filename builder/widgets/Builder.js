@@ -17,6 +17,7 @@ define([
 	'./ColumnEditor',
 	'./FeatureEditor',
 	'../util/toJavaScript',
+	'../data/config',
 	'dojo/text!./templates/Builder.html',
 	'dojo/text!./templates/gridCode.js',
 	'dojo/query',
@@ -25,10 +26,11 @@ define([
 	'dijit/layout/TabContainer'
 ], function (require, arrayUtil, declare, lang, aspect, domClass, on, string, topic, _TemplatedMixin,
 	_WidgetsInTemplateMixin, BorderContainer, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor,
-	toJavaScript, template, codeTemplate) {
+	toJavaScript, config, template, codeTemplate) {
 
 	return declare([ BorderContainer, _TemplatedMixin, _WidgetsInTemplateMixin ], {
 		templateString: template,
+		docBaseUrl: config.docBaseUrl,
 
 		aboutVisible: true,
 		aboutKey: '', // Passed from index.html if localStorage is supported
