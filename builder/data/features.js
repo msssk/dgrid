@@ -11,11 +11,14 @@ OPTIONAL
 	configModule (String): relative (to the 'widgets' folder) mid of the module that provides the configuration UI
 	info (String): Tooltip text - longer description of the feature
 */
-define([ './config' ], function (config) {
+define([
+	'./config',
+	'dojo/i18n!../nls/builder'
+], function (config, i18n) {
 	return [
 		{
 			id: 0,
-			label: 'Grid features'
+			label: i18n.gridFeatures
 		},
 		{
 			id: 1.1,
@@ -106,7 +109,7 @@ define([ './config' ], function (config) {
 		},
 		{
 			id: 1,
-			label: 'Column features'
+			label: i18n.columnFeatures
 		},
 		{
 			id: 9,

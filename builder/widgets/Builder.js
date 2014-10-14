@@ -16,6 +16,7 @@ define([
 	'./FeatureEditor',
 	'../util/toJavaScript',
 	'../data/config',
+	'dojo/i18n!../nls/builder',
 	'dojo/text!./templates/Builder.html',
 	'dojo/text!./templates/gridCode.js',
 	'dojo/query',
@@ -23,13 +24,14 @@ define([
 	'dijit/layout/ContentPane',
 	'dijit/layout/TabContainer'
 ], function (require, arrayUtil, declare, lang, domClass, string, topic, _TemplatedMixin, _WidgetsInTemplateMixin,
-	BorderContainer, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor, toJavaScript, config, template,
-	codeTemplate) {
+	BorderContainer, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor, toJavaScript, config, i18n,
+	template, codeTemplate) {
 
 	var NUM_ITEMS = 50;
 
 	return declare([ BorderContainer, _TemplatedMixin, _WidgetsInTemplateMixin ], {
 		templateString: template,
+		i18n: i18n,
 		docBaseUrl: config.docBaseUrl,
 
 		aboutVisible: true,
@@ -49,6 +51,8 @@ define([
 				splitter: true,
 				minSize: 420
 			}, this.columnEditorNode);
+
+			this.appInformationNode.innerHTML = string.substitute(i18n.appInformation, config);
 		},
 
 		postCreate: function () {
