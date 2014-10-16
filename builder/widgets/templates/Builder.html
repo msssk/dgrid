@@ -5,10 +5,10 @@
 		<div class="heading">
 			<span class="aboutToggle" data-dojo-attach-point="aboutToggleNode"
 					data-dojo-attach-event="click:_toggleAbout">
-				About
+				${i18n.about}
 				<i class="icon-angle-down" data-dojo-attach-point="aboutIconNode"></i>
 			</span>
-			dgrid builder
+			${appTitle}
 		</div>
 		<div data-dojo-attach-point="aboutNode" class="dijitHidden">
 			<p>${i18n.appDescription}</p>
@@ -34,12 +34,12 @@
 
 		<div data-dojo-type="dijit/layout/ContentPane" class="demoGridPane"
 			 data-dojo-attach-point="demoGridPane"
-			 data-dojo-props="title: 'Demo grid'">
+			 data-dojo-props="title: '${i18n.demoGrid}'">
 		</div>
 
 		<div data-dojo-type="dijit/layout/ContentPane" class="demoCodePane"
 			 data-dojo-attach-point="demoCodePane"
-			 data-dojo-props="title: 'Source code'">
+			 data-dojo-props="title: '${i18n.sourceCode}'">
 
 			<textarea data-dojo-attach-point="gridCodeTextArea" class="demoCode" readonly></textarea>
 		</div>
