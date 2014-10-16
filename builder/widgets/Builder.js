@@ -200,7 +200,7 @@ define([
 					return;
 				}
 
-				var moduleReference = item.mid.substr(item.mid.lastIndexOf('/') + 1);
+				var moduleReference = item.mid.slice(item.mid.lastIndexOf('/') + 1);
 
 				dependencies.push(item.mid);
 				callbackParams.push(moduleReference);
