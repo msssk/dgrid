@@ -54,7 +54,7 @@ define([
 					if (feature.configModule !== undefined) {
 						ConfigConstructor = require('./' + feature.configModule);
 						configPane = new ConfigConstructor({
-							moduleName: feature.mid.substr(feature.mid.lastIndexOf('/') + 1),
+							moduleName: feature.mid.slice(feature.mid.lastIndexOf('/') + 1),
 							documentationUrl: feature.documentationUrl
 						});
 
