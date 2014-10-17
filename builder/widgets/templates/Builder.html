@@ -1,24 +1,8 @@
 <div>
 	<!-- Top pane -->
-	<div data-dojo-type="dijit/layout/ContentPane"
-		 data-dojo-props="region: 'top'" class="topPane">
-		<div class="heading">
-			<span class="aboutToggle" data-dojo-attach-point="aboutToggleNode"
-					data-dojo-attach-event="click:_toggleAbout">
-				${i18n.about}
-				<i class="icon-angle-down" data-dojo-attach-point="aboutIconNode"></i>
-			</span>
-			${i18n.dgridBuilder}
-		</div>
-		<div data-dojo-attach-point="aboutNode" class="dijitHidden">
-			<p>${i18n.appDescription}</p>
-			<ol>
-				<li>${i18n.appInstructions1}</li>
-				<li>${i18n.appInstructions2}</li>
-				<li>${i18n.appInstructions3}</li>
-			</ol>
-			<p data-dojo-attach-point="appInformationNode"></p>
-		</div>
+	<div class="header">
+		<a href="<?php echo $path; ?>"><img class="logo" src="resources/img/dgridLogo.png" alt="dgrid logo"></a>
+		<a href="http://sitepen.com/" class="splogo"><img src="resources/img/sitepenLogo.svg" alt="SitePen logo"></a>
 	</div>
 
 	<!-- Left pane with feature grid -->

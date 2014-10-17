@@ -6,9 +6,9 @@ define([
 	'dojo/dom-class',
 	'dojo/string',
 	'dojo/topic',
+	'dijit/_WidgetBase',
 	'dijit/_TemplatedMixin',
 	'dijit/_WidgetsInTemplateMixin',
-	'dijit/layout/BorderContainer',
 	'dstore/Memory',
 	'dstore/Trackable',
 	'dstore/Tree',
@@ -23,13 +23,12 @@ define([
 	// Widgets in template
 	'dijit/layout/ContentPane',
 	'dijit/layout/TabContainer'
-], function (require, arrayUtil, declare, lang, domClass, string, topic, _TemplatedMixin, _WidgetsInTemplateMixin,
-	BorderContainer, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor, toJavaScript, config, i18n,
+], function (require, arrayUtil, declare, lang, domClass, string, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor, toJavaScript, config, i18n,
 	template, codeTemplate) {
 
 	var NUM_ITEMS = 50;
 
-	return declare([ BorderContainer, _TemplatedMixin, _WidgetsInTemplateMixin ], {
+	return declare([ _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin ], {
 		templateString: template,
 		i18n: i18n,
 		docBaseUrl: config.docBaseUrl,
@@ -51,8 +50,6 @@ define([
 				splitter: true,
 				minSize: 420
 			}, this.columnEditorNode);
-
-			this.appInformationNode.innerHTML = string.substitute(i18n.appInformation, config);
 		},
 
 		postCreate: function () {
@@ -64,23 +61,30 @@ define([
 			);
 		},
 
-		_toggleAbout: function () {
-			this.set('aboutVisible', !this.get('aboutVisible'));
+		startup: function () {
+			this.inherited(arguments);
+
+			this.featureEditor.startup();
+			this.columnEditor.startup();
 		},
 
-		_setAboutVisibleAttr: function (visible) {
-			domClass.toggle(this.aboutNode, 'dijitHidden', !visible);
-			domClass.replace(this.aboutIconNode,
-				visible ? 'icon-angle-up' : 'icon-angle-down',
-				visible ? 'icon-angle-down' : 'icon-angle-up');
-			this.resize();
+		// _toggleAbout: function () {
+		// 	this.set('aboutVisible', !this.get('aboutVisible'));
+		// },
 
-			if (this.aboutKey) {
-				localStorage[this.aboutKey] = '' + visible;
-			}
+		// _setAboutVisibleAttr: function (visible) {
+		// 	domClass.toggle(this.aboutNode, 'dijitHidden', !visible);
+		// 	domClass.replace(this.aboutIconNode,
+		// 		visible ? 'icon-angle-up' : 'icon-angle-down',
+		// 		visible ? 'icon-angle-down' : 'icon-angle-up');
+		// 	this.resize();
 
-			this._set('aboutVisible', visible);
-		},
+		// 	if (this.aboutKey) {
+		// 		localStorage[this.aboutKey] = '' + visible;
+		// 	}
+
+		// 	this._set('aboutVisible', visible);
+		// },
 
 		_updateDemo: function () {
 			if (this.demoGrid) {

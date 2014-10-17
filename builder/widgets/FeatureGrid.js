@@ -8,17 +8,19 @@ define([
 	'dijit/_WidgetsInTemplateMixin',
 	'./_ResizeMixin',
 	'dijit/Tooltip',
+	'dijit/registry',
 	'dgrid/OnDemandGrid',
 	'dgrid/Tree',
 	'dgrid/Editor',
 	'dgrid/extensions/DijitRegistry',
+	'dijit/form/CheckBox',
 	'dojo/i18n!../nls/builder',
 	'dojo/text!./templates/FeatureGrid.html',
 	// Widgets in template
 	'dijit/form/Form',
 	'dijit/form/RadioButton'
 ], function (arrayUtil, declare, lang, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _ResizeMixin,
-		Tooltip, OnDemandGrid, Tree, Editor, DijitRegistry, i18n, template) {
+		Tooltip, registry, OnDemandGrid, Tree, Editor, DijitRegistry, CheckBox, i18n, template) {
 
 	function renderLabelCell (item, value, node) {
 		// Render the label cell, adding the doc link, tooltip icon, and config icon when appropriate
@@ -28,21 +30,21 @@ define([
 			cellValue = '<a href="' + item.documentationUrl + '" target="_blank">' + cellValue + '</a>';
 		}
 
-		if (item.info) {
-			cellValue += ' <i class="icon-info-circle"></i>';
-		}
+		// if (item.info) {
+		// 	cellValue += ' <i class="icon-info-circle"></i>';
+		// }
 
-		// If configModule has not been defined there's no config widget to display
-		if (item.configLevel === 'grid' && item.configModule) {
-			cellValue += ' <i class="icon-gear"></i>';
-		}
+		// // If configModule has not been defined there's no config widget to display
+		// if (item.configLevel === 'grid' && item.configModule) {
+		// 	cellValue += ' <i class="icon-gear"></i>';
+		// }
 
 		node.innerHTML = cellValue;
 	}
 
 	var CustomGrid = declare([ OnDemandGrid, Tree, Editor, DijitRegistry ], {
 		gridTypeForm: null, // Passed from FeatureGrid when instantiated
-
+		showHeader: false,
 		columns: {
 			label: {
 				label: i18n.selectGridFeatures,
@@ -52,7 +54,10 @@ define([
 			},
 			selected: {
 				label: '',
-				editor: 'checkbox',
+				editor: CheckBox,
+				editorArgs: {
+					value: true
+				},
 				autoSave: true,
 				canEdit: function (item) {
 					return 'parentId' in item;
@@ -164,7 +169,7 @@ define([
 			var mid = object.mid;
 
 			if (mid === 'dgrid/Grid' || mid === 'dgrid/OnDemandGrid') {
-				cell.element.input.disabled = true;
+				registry.byNode(cell.element.firstChild).set('disabled', true);
 			}
 
 			return rowNode;
