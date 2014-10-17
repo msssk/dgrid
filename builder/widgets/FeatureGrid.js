@@ -206,7 +206,7 @@ define([
 		postCreate: function () {
 			var self = this;
 			this.inherited(arguments);
-
+			this.gridTypeForm.startup();
 			this.own(
 				this.gridTypeForm.watch('value', function (name, oldValue, value) {
 					self.set('gridModule', value.gridType);
