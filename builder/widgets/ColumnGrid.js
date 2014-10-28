@@ -69,6 +69,7 @@ define([
 						sortable: false
 					}
 				},
+				showHeader: false,
 				dndParams: {
 					withHandles: true
 				}

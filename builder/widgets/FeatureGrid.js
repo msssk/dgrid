@@ -3,6 +3,7 @@ define([
 	'dojo/_base/declare',
 	'dojo/_base/lang',
 	'dojo/topic',
+	'dojo/query',
 	'dijit/_WidgetBase',
 	'dijit/_TemplatedMixin',
 	'dijit/_WidgetsInTemplateMixin',
@@ -10,6 +11,7 @@ define([
 	'dijit/Tooltip',
 	'dijit/registry',
 	'dgrid/OnDemandGrid',
+	'dgrid/Selection',
 	'dgrid/Tree',
 	'dgrid/Editor',
 	'dgrid/extensions/DijitRegistry',
@@ -19,8 +21,8 @@ define([
 	// Widgets in template
 	'dijit/form/Form',
 	'dijit/form/RadioButton'
-], function (arrayUtil, declare, lang, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _ResizeMixin,
-		Tooltip, registry, OnDemandGrid, Tree, Editor, DijitRegistry, CheckBox, i18n, template) {
+], function (arrayUtil, declare, lang, topic, query, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, _ResizeMixin,
+		Tooltip, registry, OnDemandGrid, Selection, Tree, Editor, DijitRegistry, CheckBox, i18n, template) {
 
 	function renderLabelCell (item, value, node) {
 		// Render the label cell, adding the doc link, tooltip icon, and config icon when appropriate
@@ -34,17 +36,18 @@ define([
 		// 	cellValue += ' <i class="icon-info-circle"></i>';
 		// }
 
-		// // If configModule has not been defined there's no config widget to display
-		// if (item.configLevel === 'grid' && item.configModule) {
-		// 	cellValue += ' <i class="icon-gear"></i>';
-		// }
+		// If configModule has not been defined there's no config widget to display
+		if (item.configLevel === 'grid' && item.configModule) {
+			cellValue += ' <i class="icon-gear"></i>';
+		}
 
 		node.innerHTML = cellValue;
 	}
 
-	var CustomGrid = declare([ OnDemandGrid, Tree, Editor, DijitRegistry ], {
+	var CustomGrid = declare([ OnDemandGrid, Selection, Tree, Editor, DijitRegistry ], {
 		gridTypeForm: null, // Passed from FeatureGrid when instantiated
 		showHeader: false,
+		selectionMode: 'single',
 		columns: {
 			label: {
 				label: i18n.selectGridFeatures,
@@ -70,8 +73,16 @@ define([
 			this.inherited(arguments);
 
 			this.on('dgrid-datachange', lang.hitch(this, '_onDataChange'));
-			this.on('.icon-info-circle:mouseover', lang.hitch(this, '_showInfoTip'));
-			this.on('.icon-info-circle:mouseout', lang.hitch(this, '_hideInfoTip'));
+			this.on('.dgrid-column-label:mouseover', lang.hitch(this, '_showInfoTip'));
+			this.on('.dgrid-column-label:mouseout', lang.hitch(this, '_hideInfoTip'));
+			this.on('dgrid-select', lang.hitch(this, '_toggleModule'));
+		},
+
+		_toggleModule: function (event) {
+			var node = query('.dijitCheckBox', event.rows[0].element)[0];
+			if (!node) { return; }
+			var checkbox = registry.byNode(node);
+			!checkbox.get('disabled') && checkbox.set('checked', !checkbox.get('checked'));
 		},
 
 		_onDataChange: function (event) {
@@ -177,8 +188,7 @@ define([
 
 		_showInfoTip: function (event) {
 			var row = this.row(event);
-
-			Tooltip.show(row.data.info, event.target, ['after']);
+			row.data.info && Tooltip.show(row.data.info, event.target);
 		},
 
 		_hideInfoTip: function (event) {

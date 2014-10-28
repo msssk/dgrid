@@ -1,4 +1,4 @@
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,700);
 
 * {
 	box-sizing: border-box;
@@ -11,6 +11,11 @@ body {
 	margin: 0;
 	font-family: 'Open Sans';
 	font-size: 16px;
+	background: #F5FAFB;
+}
+
+.builder {
+	font-size: 0;
 }
 
 
@@ -113,6 +118,56 @@ body {
  * Editors (column and features)
  */
 
+.claro .dijitButtonText {
+	padding: 0;
+}
+
+.claro .dijitButton {
+	margin: 0;
+}
+
+.claro .dijitButton .dijitButtonNode {
+	background: #144C66;
+	border: 0;
+	font-size: 16px;
+	color: white;
+	border-radius: 3px;
+	padding: 3px 5px;
+}
+
+.claro .dijitTextBox,
+.claro .dgrid-input {
+	border-radius: 3px;
+	border: 2px solid #E0E0E0;
+	padding: 3px 5px;
+	background: transparent !important;
+}
+
+.claro .dijitTextBox .dijitInputInner,
+.claro .dgrid-input {
+	color: #144C66;
+}
+
+.claro .dijitTextBox,
+.claro .dijitPlaceHolder,
+.claro .dgrid-input {
+	font-style: normal;
+	font-family: 'Open Sans';
+	outline: 0;
+}
+
+.claro .dgrid-input:focus {
+	outline: 0;
+}
+
+.claro .dgrid-selected {
+	background: transparent;
+}
+
+.claro .dojoDndItemOver {
+	border-color: transparent;
+}
+
 .claro .featureGrid,
 .claro .columnGrid {
 	color: #144C66;
@@ -129,10 +184,44 @@ body {
 }
 
 .claro .featureGrid .dgrid-cell,
-.claro .columnGrid .dgrid-cell {
+.claro .columnGrid .dgrid-cell,
+.featureEditor .gridTypeForm {
 	line-height: 31px;
 	border: 0;
 	padding: 0;
+}
+
+.featureEditor .featureEditorChildWrapper {
+	padding-left: 20px;
+}
+
+.featureEditor .featureEditorChildWrapper:first-child {
+	padding: 0;
+}
+
+.gridTypeForm {
+	display: none;
+}
+
+.collapseHeader {
+	line-height: 31px;
+	color: #144C66;
+	position: relative;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.columnEditor {
+	margin: 0;
+	padding-left: 20px;
+	max-height: 0;
+	overflow: hidden;
+	transition: max-height .5s ease-in-out, margin .5s ease-in-out;
+}
+
+.columnEditor.open {
+	max-height: 500px;
+	margin-top: 7px;
 }
 
 .claro .featureGrid .dgrid-cell a,
@@ -141,8 +230,11 @@ body {
 	color: #144C66;
 }
 
-.featureGrid .dgrid-expando-icon.ui-icon,
-.columnGrid .dgrid-expando-icon.ui-icon {
+.featureGrid .dgrid-row .dgrid-cell .dgrid-expando-icon {
+	margin-left: 4px !important;
+}
+
+.dgrid-expando-icon.ui-icon {
 	background: url('img/expando.png') no-repeat center center/contain;
 	width: 10px;
 	height: 6px;
@@ -162,14 +254,22 @@ body {
 	height: 18px;
 }
 
+.claro .featureGrid .dijitCheckBox[disabled],
+.claro .columnGrid .dijitCheckBox[disabled] {
+	background: none;
+	border-radius: 3px;
+	background-color: #ECF0F1;
+	width: 18px;
+	height: 18px;
+}
+
 .claro .featureGrid .dijitCheckBoxChecked,
 .claro .columnGrid .dijitCheckBoxChecked {
 	background: url('img/check.png') no-repeat center center/contain;
 	background-color: #1ABC9C;
 }
 
-.claro .dijitCheckBox,
-.claro .dijitCheckBox input {
+.claro .featureGrid .dgrid-row {
 	cursor: pointer !important;
 }
 
@@ -179,15 +279,158 @@ body {
 	margin: 0;
 }
 
+.featureGrid,
+.columnGrid {
+	height: auto;
+	border: 0 !important;
+}
+
+.featureGrid .dgrid-scroller,
+.columnGrid .dgrid-scroller {
+	position: relative;
+	overflow: hidden;
+}
+
+.featureGrid .dgrid-content,
+.columnGrid .dgrid-content {
+	height: auto;
+}
+
+.featureGrid {
+	font-weight: bold;
+}
+
+.featureGrid .dgrid-tree-container {
+	font-weight: normal;
+}
+
+.claro .columnGrid .dgrid-column-dragSource {
+	width: 20px;
+}
+
+.claro .columnGrid .dgrid-column-config  {
+	width: 38px;
+	padding-left: 4px;
+}
+
+.claro .columnGrid .dgrid-column-label {
+	padding-left: 2px;
+}
+
+.claro .columnGrid .dgrid-column-fieldName {
+	padding-right: 3px;
+}
 
 /*
  * Layout
  */
 
-.configForm {
+.control {
+	width: 370px;
+	display: inline-block;
+	vertical-align: top;
+	font-size: 16px;
+	padding: 25px;
+	background: white;
+}
+
+.tabControl {
+	line-height: 31px;
+	color: #144C66;
+	position: relative;
+	font-weight: bold;
+}
+
+.render {
+	width: calc(100% - 370px);
+	display: inline-block;
+	vertical-align: top;
+	font-size: 16px;
+	padding: 25px;
+}
+
+.gridBtn,
+.codeBtn {
+	color: #E0E0E0;
+	cursor: pointer;
+}
+
+.render[data-selected-page="grid"] .gridBtn {
+	color: #144C66;
+}
+
+.codeBtn {
+	margin-left: 25px;
+}
+
+.demoGridPane {
+	color: #95a5a6;
+	font-style: italic;
+}
+
+.demoCodePane textarea {
+	width: 100%;
+	border: 0;
+	font-family: Courier;
+	font-size: 12px;
+	overflow-y: hidden;
+	padding: 15px 5px;
+}
+
+.render[data-selected-page="code"] .demoGridPane {
 	display: none;
 }
 
-.featureEditor {
-	width: 370px;
+.render[data-selected-page="code"] .codeBtn {
+	color: #144C66;
+}
+
+.render[data-selected-page="grid"] .demoCodePane {
+	display: none;
+}
+
+.columnGridForm {
+	font-size: 0;
+	position: relative;
+	margin-bottom: 4px;
+}
+
+.columnGridForm .dijitTextBox {
+	width: 49%;
+	font-size: 14px;
+	position: absolute;
+	right: 0;
+	top: 0;
+	display: block;
+}
+
+.columnGridForm .dijitButton {
+	margin-top: 7px;
+}
+
+.columnEditor .configForm {
+	padding: 5px 0;
+	display: none;
+}
+
+.featureEditor .configForm {
+	width: 100% !important;
+	height: auto !important;
+}
+
+.columnGridForm .dijitButton,
+.columnGridForm .dijitButton .dijitButtonNode,
+.buttonBar .dijitButton,
+.buttonBar .dijitButton .dijitButtonNode{
+	width: 100%;
+	display: block;
+}
+
+.columnGridForm .dijitButton .dijitButtonNode {
+	font-size: 14px;
+	border: 2px solid #144C66;
+}
+
+.columnGridForm .dijitTextBox:first-child {
+	position: relative;
 }
