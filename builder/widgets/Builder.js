@@ -4,7 +4,9 @@ define([
 	'dojo/_base/declare',
 	'dojo/_base/lang',
 	'dojo/dom-class',
+	'dojo/dom-attr',
 	'dojo/string',
+	'dojo/on',
 	'dojo/topic',
 	'dijit/_WidgetBase',
 	'dijit/_TemplatedMixin',
@@ -23,7 +25,7 @@ define([
 	// Widgets in template
 	'dijit/layout/ContentPane',
 	'dijit/layout/TabContainer'
-], function (require, arrayUtil, declare, lang, domClass, string, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor, toJavaScript, config, i18n,
+], function (require, arrayUtil, declare, lang, domClass, domAttr, string, on, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor, toJavaScript, config, i18n,
 	template, codeTemplate) {
 
 	var NUM_ITEMS = 50;
@@ -32,6 +34,7 @@ define([
 		templateString: template,
 		i18n: i18n,
 		docBaseUrl: config.docBaseUrl,
+		baseClass: 'builder',
 
 		aboutVisible: true,
 		aboutKey: '', // Passed from index.html if localStorage is supported
@@ -39,26 +42,19 @@ define([
 		buildRendering: function () {
 			this.inherited(arguments);
 
-			this.featureEditor = new FeatureEditor({
-				region: 'left',
-				splitter: true,
-				minSize: 380
-			}, this.featureEditorNode);
-
-			this.columnEditor = new ColumnEditor({
-				region: 'left',
-				splitter: true,
-				minSize: 420
-			}, this.columnEditorNode);
+			this.featureEditor = new FeatureEditor({}, this.featureEditorNode);
+			this.columnEditor = new ColumnEditor({}, this.columnEditorNode);
 		},
 
 		postCreate: function () {
 			this.inherited(arguments);
 
 			this.own(
-				topic.subscribe('/configuration/changed', lang.hitch(this, '_updateDemo')),
-				this.previewTabs.watch('selectedChildWidget', lang.hitch(this, '_updateDemo'))
+				topic.subscribe('/configuration/changed', lang.hitch(this, '_updateDemo'))
+				// this.previewTabs.watch('selectedChildWidget', lang.hitch(this, '_updateDemo'))
 			);
+
+			this._selectedChildWidget = this.demoGridPane;
 		},
 
 		startup: function () {
@@ -86,10 +82,14 @@ define([
 		// 	this._set('aboutVisible', visible);
 		// },
 
+		_toggleColumns: function () {
+			domClass.toggle(this.columnEditorNode, 'open');
+		},
+
 		_updateDemo: function () {
 			if (this.demoGrid) {
 				this.demoGrid.destroy();
-				this.demoGridPane.set('content', '');
+				this.demoGridPane.innerHTML = '';
 			}
 
 			this.gridCodeTextArea.value = '';
@@ -100,7 +100,7 @@ define([
 				return;
 			}
 
-			if (this.previewTabs.selectedChildWidget === this.demoGridPane) {
+			if (this._selectedChildWidget === this.demoGridPane) {
 				this._showDemoGrid();
 			}
 			else {
@@ -108,8 +108,22 @@ define([
 			}
 		},
 
+		_selectCode: function () {
+			this._selectedChildWidget = this.demoCodePane;
+			domAttr.set(this.previewTabs, 'data-selected-page', 'code');
+			this._updateDemo();
+		},
+
+		_selectGrid: function () {
+			this._selectedChildWidget = this.demoGridPane;
+			domAttr.set(this.previewTabs, 'data-selected-page', 'grid');
+			this._updateDemo();
+		},
+
 		_showCode: function () {
 			this.gridCodeTextArea.value = this._generateCode();
+			this.gridCodeTextArea.style.height = '';
+			this.gridCodeTextArea.style.height = this.gridCodeTextArea.scrollHeight + 'px';
 		},
 
 		_generateCode: function () {
@@ -265,7 +279,8 @@ define([
 				}
 
 				self.demoGrid = new (declare(Array.prototype.slice.apply(arguments)))(gridOptions);
-				self.demoGridPane.addChild(self.demoGrid);
+				self.demoGridPane.innerHTML = '';
+				self.demoGridPane.appendChild(self.demoGrid.domNode);
 				self.demoGrid.startup();
 
 				if (!hasStore) {

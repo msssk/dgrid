@@ -7,15 +7,13 @@ define([
 	'dstore/Memory',
 	'dstore/Trackable',
 	'dstore/Tree',
-	'dijit/_WidgetBase',
-	'dijit/_TemplatedMixin',
-	'dijit/_WidgetsInTemplateMixin',
+	'dijit/layout/StackContainer',
 	'./FeatureGrid',
 	'../data/features'
-], function (require, arrayUtil, declare, lang, topic, Memory, Trackable, Tree, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, FeatureGrid,
+], function (require, arrayUtil, declare, lang, topic, Memory, Trackable, Tree, StackContainer, FeatureGrid,
 		featureData) {
 
-	return declare([ _WidgetBase ], {
+	return declare(StackContainer, {
 		baseClass: 'featureEditor',
 
 		buildRendering: function () {
@@ -26,7 +24,7 @@ define([
 
 			this.configPanes = {};
 
-			this.store = window.store = new (declare([ Memory, Trackable, Tree ], {
+			this.store = new (declare([ Memory, Trackable, Tree ], {
 				mayHaveChildren: function (item) {
 					return !('parentId' in item);
 				},
@@ -40,9 +38,7 @@ define([
 			this.featureGrid = new FeatureGrid({
 				collection: this.store.filter('mayHaveChildren')
 			});
-
-			this.domNode.appendChild(this.featureGrid.domNode);
-			this.featureGrid.grid.startup();
+			this.addChild(this.featureGrid);
 
 			arrayUtil.forEach(featureData, function (feature) {
 				if (feature.configModule) {
@@ -65,8 +61,10 @@ define([
 						configPane.on('close', function () {
 							self.selectChild(self.featureGrid);
 						});
+						
+						console.log('adding ', configPane.moduleName);
 
-						this.domNode.appendChild(configPane.domNode);
+						this.addChild(configPane);
 						this.configPanes[feature.mid] = configPane;
 					}
 				}, self);
@@ -96,6 +94,7 @@ define([
 
 		_showModuleConfig: function (event) {
 			var configPane = this.configPanes[event.mid];
+			console.log('selecting ', configPane.moduleName);
 
 			if (configPane) {
 				this.selectChild(configPane);
