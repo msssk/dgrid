@@ -49,12 +49,6 @@ define([
 		showHeader: false,
 		selectionMode: 'single',
 		columns: {
-			label: {
-				label: i18n.selectGridFeatures,
-				renderExpando: true,
-				renderCell: renderLabelCell,
-				sortable: false
-			},
 			selected: {
 				label: '',
 				editor: CheckBox,
@@ -65,6 +59,12 @@ define([
 				canEdit: function (item) {
 					return 'parentId' in item;
 				},
+				sortable: false
+			},
+			label: {
+				label: i18n.selectGridFeatures,
+				renderExpando: true,
+				renderCell: renderLabelCell,
 				sortable: false
 			}
 		},

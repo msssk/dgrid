@@ -5,6 +5,7 @@ define([
 	'dojo/_base/lang',
 	'dojo/dom-class',
 	'dojo/dom-attr',
+	'dojo/query',
 	'dojo/string',
 	'dojo/on',
 	'dojo/topic',
@@ -25,7 +26,7 @@ define([
 	// Widgets in template
 	'dijit/layout/ContentPane',
 	'dijit/layout/TabContainer'
-], function (require, arrayUtil, declare, lang, domClass, domAttr, string, on, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor, toJavaScript, config, i18n,
+], function (require, arrayUtil, declare, lang, domClass, domAttr, query, string, on, topic, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Memory, Trackable, TreeStoreMixin, ColumnEditor, FeatureEditor, toJavaScript, config, i18n,
 	template, codeTemplate) {
 
 	var NUM_ITEMS = 50;
@@ -62,6 +63,14 @@ define([
 
 			this.featureEditor.startup();
 			this.columnEditor.startup();
+		},
+
+		selectTab: function (evt) {
+			var target = domAttr.get(evt.target, 'data-target');
+			query('.active', this.domNode).removeClass('active');
+			query('[data-target="' + target + '"]', this.domNode).addClass('active');
+			query('.showing', this.domNode).removeClass('showing');
+			query('[data-tab="' + target + '"', this.domNode).addClass('showing');
 		},
 
 		// _toggleAbout: function () {
