@@ -1,10 +1,11 @@
 define([
 	'dojo/_base/declare',
 	'dojo/_base/lang',
+	'dojo/dom-class',
 	'dijit/_WidgetBase',
 	'./ColumnConfigForm',
 	'./ColumnGrid'
-], function (declare, lang, _WidgetBase, ColumnConfigForm, ColumnGrid) {
+], function (declare, lang, domClass, _WidgetBase, ColumnConfigForm, ColumnGrid) {
 	return declare(_WidgetBase, {
 		baseClass: 'columnEditor',
 
@@ -36,16 +37,12 @@ define([
 		},
 
 		_showGrid: function () {
-			// this.selectChild(this.columnGrid);
-			this.columnGrid.domNode.style.display = 'block';
-			this.form.domNode.style.display = 'none';
+			domClass.remove(this.domNode, 'slid');
 		},
 
 		_onEditColumn: function (event) {
-			this.form.domNode.style.display = 'block';
-			this.columnGrid.domNode.style.display = 'none';
+			domClass.add(this.domNode, 'slid');
 			this.form.set('value', event.data);
-			// this.selectChild(this.form);
 		}
 	});
 });
