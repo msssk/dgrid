@@ -380,10 +380,6 @@ fieldset {
 	width: 30px;
 }
 
-.featureGrid .dgrid-content > .dgrid-row {
-	display: none;
-}
-
 .featureGrid .dgrid-expando-icon {
 	display: none;
 }
