@@ -11,7 +11,7 @@
 .claro {
 
 	.featureGrid {
-		margin-top:1em;
+		margin-top:0.5em;
 	}
 
 	.featureGrid,
@@ -77,16 +77,18 @@
 			}
 
 			&.dijitCheckBoxChecked {
-				background: $checkFilledBg;
-					&:hover {
-					background-color: lighten(@background, 15%);
+				background: url("img/check.svg") no-repeat 2px 4px;
+				background-color: $checkFilledBg;
+				&:hover {
+					background-color: lighten(@background-color, 15%);
 				}
 			}
 
 			&.dijitCheckBoxCheckedDisabled {
-				background: darken($checkFilledBg, 20%);
+				background: url("img/check.svg") no-repeat 2px 4px;
+				background-color: darken($checkFilledBg, 30%);
 				&:hover {
-					background-color: @background;
+					background-color: @background-color;
 				}
 			}
 		}
