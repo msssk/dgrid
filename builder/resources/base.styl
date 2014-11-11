@@ -24,7 +24,7 @@ fieldset {
 }
 
 .control {
-	width: 300px;
+	width: $sidebarWidth;
 	height: calc(100% - 70px);
 	display: inline-block;
 	vertical-align: top;
@@ -34,7 +34,6 @@ fieldset {
 }
 
 .render {
-	width: calc(100% - 300px);
 	display: inline-block;
 	vertical-align: top;
 	font-size: 16px;
@@ -42,6 +41,12 @@ fieldset {
 	position: relative;
 	z-index: 2;
 	background: #F8F8F8;
+	width: calc(100% - $sidebarWidth);
+	height: calc(100% - 70px);
+	display: inline-block;
+	vertical-align: top;
+	font-size: 16px;
+	padding: 25px;
 }
 
 .tabControl {
@@ -51,14 +56,6 @@ fieldset {
 	font-weight: bold;
 }
 
-.render {
-	width: calc(100% - 300px);
-	height: calc(100% - 70px);
-	display: inline-block;
-	vertical-align: top;
-	font-size: 16px;
-	padding: 25px;
-}
 
 /*
  * Header
