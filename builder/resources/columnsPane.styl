@@ -61,18 +61,34 @@
 		.dijitCheckBox {
 			background: none;
 			border-radius: 3px;
-			background-color: #ECF0F1;
-			width: 18px;
-			height: 18px;
-		}
-		.dijitCheckBoxDisabled {
-			border-radius: 3px;
-			background-color: $checkDisabledBg;
-			width: 18px;
-			height: 18px;
-		}
-		.dijitCheckBoxChecked {
-			background: $checkFilledBg;
+			background-color: $checkBg;
+			box-shadow: inset 1px 1px 3px 0px rgba(50, 50, 50, 0.65);
+			width: $checkboxSize;
+			height: $checkboxSize;
+			transition: background-color 0.3s, box-shadow 0.3s;
+
+			&:hover{
+				box-shadow: inset 1px 1px 1px 0px rgba(50, 50, 50, 0.45);
+			}
+
+			&.dijitCheckBoxDisabled {
+				background-color: $checkDisabledBg;
+				box-shadow: none;
+			}
+
+			&.dijitCheckBoxChecked {
+				background: $checkFilledBg;
+					&:hover {
+					background-color: lighten(@background, 15%);
+				}
+			}
+
+			&.dijitCheckBoxCheckedDisabled {
+				background: darken($checkFilledBg, 20%);
+				&:hover {
+					background-color: @background;
+				}
+			}
 		}
 
 		.icon-gear {
