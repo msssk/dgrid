@@ -34,6 +34,11 @@ define([
 		templateString: template,
 		i18n: i18n,
 		docBaseUrl: config.docBaseUrl,
+		dgridUrl: config.dgridUrl,
+
+		// resourcesBaseUrl is used for image paths; toUrl includes cacheBust so strip it
+		resourcesBaseUrl: require.toUrl('../resources').replace(/\?.*$/, ''),
+
 		baseClass: 'builder',
 
 		aboutVisible: true,
@@ -71,6 +76,8 @@ define([
 
 			query('[data-target="' + target + '"]', this.domNode).addClass('active');
 			if (target !== 'columns') {
+				// The Grid and Column Features "tabs" actually both show the same widget,
+				// but using a different filter for its grid
 				this.featureEditor.set('featureType', (target === 'gridFeatures') ? 'grid' : 'column');
 				target = 'features';
 			}
