@@ -174,7 +174,7 @@ fieldset {
  */
 .tabs {
 	font-size: 0;
-	background: #1A374F;
+	background: $sidebarTabStripBg;
 }
 
 .tab {
@@ -183,10 +183,15 @@ fieldset {
 	padding: 15px 10px;
 	display: inline-block;
 	cursor: pointer;
+	transition: background 0.4s;
+
+	&:hover {
+		background: lighten($sidebarTabStripBg, 10%);
+	}
 }
 
 .tab.active {
-	background: #0B1E2A;
+	background: $sidebarTabActiveBg;
 }
 
 [data-tab] {
