@@ -8,10 +8,16 @@
 	vertical-align: top;
 }
 
- .claro {
- 	.featureGrid,
+.claro {
+
+	.featureGrid {
+		margin-top:1em;
+	}
+
+	.featureGrid,
 	.columnGrid,
 	.dojoDndAvatar {
+		background: transparent;
 		height: auto;
 		border: 0 !important;
 
@@ -61,7 +67,7 @@
 	.columnGrid,
 	.dojoDndAvatar {
 		.dgrid-row {
-			background: $sidebarBackground;
+			background: transparent;
 			color: white;
 			font-size: 13px;
 			font-weight: 100;
@@ -136,7 +142,9 @@
 				transition: height 0.2s, opacity 0.3s, background 0.3s;
 				opacity: 0;
 			}
-			&:active {
+
+			&:active,
+			.dgrid-selected {
 				opacity: 0.5;
 			}
 
