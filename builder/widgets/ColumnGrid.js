@@ -90,7 +90,7 @@ define([
 			event.preventDefault();
 			var form = this.columnGridForm;
 
-			if (!form.validate()) {
+			if (!form.get('value').label) {
 				return;
 			}
 
