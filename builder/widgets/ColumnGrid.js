@@ -35,9 +35,7 @@ define([
 		buildRendering: function () {
 			this.inherited(arguments);
 
-			this.store = new (declare([ Memory, Trackable ]))({
-				idProperty: 'field'
-			});
+			this.store = new (declare([ Memory, Trackable ]))();
 
 			this.grid = new (declare([ OnDemandGrid, Editor, DnD, DijitRegistry ], {
 				columns: {

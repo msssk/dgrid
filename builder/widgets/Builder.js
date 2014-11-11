@@ -332,6 +332,10 @@ define([
 			arrayUtil.forEach(this.columnEditor.get('columns'), function (columnConfig) {
 				var config = this._fixDataTypes(lang.clone(columnConfig));
 
+				// The builder needs the store items to have a unique id property,
+				// but we don't want to include it in our output
+				delete config.id;
+
 				if (config.field === treeExpandoColumn) {
 					config.renderExpando = true;
 				}
