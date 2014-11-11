@@ -81,7 +81,7 @@ define([
 				this.featureEditor.set('featureType', (target === 'gridFeatures') ? 'grid' : 'column');
 				target = 'features';
 			}
-			query('[data-tab="' + target + '"', this.domNode).addClass('showing');
+			query('[data-tab="' + target + '"]', this.domNode).addClass('showing');
 		},
 
 		// _toggleAbout: function () {
