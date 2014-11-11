@@ -70,7 +70,9 @@ define([
 			// Since we are using Dijit checkbox editors, updating one's checked state will fire
 			// change handlers, which will route into _onDataChange below
 			var checkbox = this.cell(this.row(event), 'selected').element.widget;
-			checkbox.set('checked', !checkbox.get('checked'));
+			if (!checkbox.get('disabled')) {
+				checkbox.set('checked', !checkbox.get('checked'));
+			}
 		},
 
 		_onDataChange: function (event) {
