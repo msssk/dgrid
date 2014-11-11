@@ -32,8 +32,6 @@ $checkDisabledBg = #687987;
 
 $checkboxSize = 16px;
 $checkmark = "\e600";
-$radioChecked = "\e601";
-$radio = "\e602";
 $closeIcon = "\f00d";
 $gearIcon = "\f013";
 $infoIcon = "\f05a";
@@ -44,3 +42,20 @@ $angleDownIcon = "\f107";
 $replyIcon = "\f112";
 $gridIcon = "\e603";
 $codeIcon = "\e604";
+
+$radio = -20px 0;
+$radioChecked = -41px 0;
+$checkboxChecked = 0 1px;
+
+
+$formSprite = "img/formSprite.png";
+$formSprite2x = "img/formSprite@2x.png"
+
+$sprite() {
+	background: url($formSprite) no-repeat arguments;
+
+	@media only screen and (-webkit-min-device-pixel-ratio: 2),
+	only screen and (min-device-pixel-ratio: 2) {
+		background: url($formSprite2x) no-repeat arguments;
+	}
+}

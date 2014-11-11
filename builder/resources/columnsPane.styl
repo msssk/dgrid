@@ -77,7 +77,7 @@
 			}
 
 			&.dijitCheckBoxChecked {
-				background: url("img/formSprite.svg") no-repeat 0px 1px;
+				$sprite($checkboxChecked);
 				background-color: $checkFilledBg;
 				&:hover {
 					background-color: lighten(@background-color, 15%);
@@ -85,7 +85,7 @@
 			}
 
 			&.dijitCheckBoxCheckedDisabled {
-				background: url("img/formSprite.svg") no-repeat 0px 1px;
+				$sprite($checkboxChecked);
 				background-color: darken($checkFilledBg, 30%);
 				&:hover {
 					background-color: @background-color;
@@ -200,11 +200,11 @@
 	}
 
 	.dijitRadio {
-		background: url("img/formSprite.svg") no-repeat -20px 0;
+		$sprite($radio);
 	}
 
 	.dijitRadioChecked {
-		background-position: -41px 0;
+		$sprite($radioChecked);
 	}
 }
 
