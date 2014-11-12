@@ -262,7 +262,7 @@
 }
 
 .configForm {
-	color: white;
+	color: #fff;
 	font-weight: 100;
 	font-size: 14px;
 	position: relative;
@@ -271,6 +271,11 @@
 	display: inline-block;
 	width: 50%;
 	vertical-align: top;
+
+	legend {
+		// IE reverts to #000 for legends unless specifically told otherwise
+		color: #fff;
+	}
 
 	.dijitButton {
 		margin: 0;
