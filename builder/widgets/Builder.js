@@ -65,10 +65,15 @@ define([
 		},
 
 		startup: function () {
+			var columnEditor = this.columnEditor;
 			this.inherited(arguments);
 
 			this.featureEditor.startup();
-			this.columnEditor.startup();
+			columnEditor.startup();
+
+			// Add a couple of columns by default
+			columnEditor.addColumn('name');
+			columnEditor.addColumn('value');
 		},
 
 		selectTab: function (evt) {
