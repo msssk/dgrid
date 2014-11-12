@@ -92,7 +92,7 @@ define([
 					this.emit('close');
 				})),
 				this.watch('value', function (propertyName, oldValue, newValue) {
-					// Let the ColumnGrid know the column config has changed so it an update the store
+					// Let the ColumnGrid know the column config has changed so it can update the store
 					topic.publish('/column/changed', newValue);
 				})
 			);
@@ -102,7 +102,7 @@ define([
 			// Use default values for any unspecified fields
 			this.inherited(arguments, [lang.mixin(lang.clone(defaultColumnValues), value)]);
 			// Store the id - _FormMixin will discard this value, but we need it to persist the data back to the store
-			this._id = value.id;
+			this._currentStoreItemId = value.id;
 		},
 
 		_getValueAttr: function () {
@@ -125,7 +125,9 @@ define([
 			}
 
 			// Restore the id
-			returnValue.id = this._id;
+			if (this._currentStoreItemId) {
+				returnValue.id = this._currentStoreItemId;
+			}
 
 			return returnValue;
 		},

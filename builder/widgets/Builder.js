@@ -55,7 +55,7 @@ define([
 			this.inherited(arguments);
 
 			this.own(
-				topic.subscribe('/configuration/changed', lang.hitch(this, '_updateDemo'))
+				topic.subscribe('/demo/update', lang.hitch(this, '_updateDemo'))
 				// this.previewTabs.watch('selectedChildWidget', lang.hitch(this, '_updateDemo'))
 			);
 

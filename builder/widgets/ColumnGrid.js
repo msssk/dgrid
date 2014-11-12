@@ -125,7 +125,7 @@ define([
 
 		_onStoreChange: function () {
 			// Let the Builder know that is should update the demo display (grid or generated code)
-			topic.publish('/configuration/changed');
+			topic.publish('/demo/update');
 			// Let the Tree config module know that is should update its list of column names
 			topic.publish('/store/columns/update', this.store);
 		}
