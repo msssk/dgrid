@@ -43,8 +43,7 @@ define([
 			});
 
 			this.doneButton = new Button({
-				label: i18n.done,
-				className: 'doneButton'
+				label: i18n.done
 			}).placeAt(buttonBar);
 
 			this._startupWidgets.push(this.doneButton);
