@@ -1,5 +1,9 @@
 ## Overview
 
+The dgrid Laboratory is built using dgrid and provides a UI for defining and configuring your own dgrid. The configuration will be rendered in a demo grid and if you click the "Code" button you can see source code for creating the grid in your own application.
+
+The documentation below gives some information on the overall architecture of the Laboratory and some more detailed information on some of the more prominent modules.
+
 * `index.html`: application entry point
 * `Laboratory.js`: top-level widget with full-page UI layout
 	* tab navigation
