@@ -104,7 +104,7 @@ This widget encapsulates the functionality in the "Grid Features" and "Column Fe
 
 ### `FeatureGrid`
 
-Like the `ColumnGrid` widget this is a templated widget that encapsulates not only the grid, but also its store. Logic is also included to prevent incompatible configurations (e.g. `OnDemandGrid` with `drid/extensions/Pagination`).
+Like the `ColumnGrid` widget this is a templated widget that encapsulates not only the grid but also its store. Logic is also included to prevent incompatible configurations (e.g. `OnDemandGrid` with `drid/extensions/Pagination`).
 
 #### API
 
