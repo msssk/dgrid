@@ -1,8 +1,8 @@
 ## Overview
 
-The dgrid Laboratory is built using dgrid and provides a UI for defining and configuring your own dgrid. The configuration will be rendered in a demo grid and if you click the "Code" button you can see source code for creating the grid in your own application.
+The dgrid Laboratory is built using dgrid and provides a UI for defining and configuring your own dgrid. The configuration will be rendered in a demo grid and if you click the "Code" button you can see source code for creating the grid in your own application. While the Laboratory can be helpful in getting started creating and configuring your own grid, you will definitely want to read dgrid's [documentation](https://github.com/SitePen/dgrid/tree/master/doc) and [tutorials](http://dgrid.io/#tutorials).
 
-The documentation below gives some information on the overall architecture of the Laboratory and some more detailed information on some of the more prominent modules.
+The documentation below gives some information on the overall architecture of the Laboratory and some more detailed information on some of its more prominent modules.
 
 * `index.html`: application entry point
 * `Laboratory.js`: top-level widget with full-page UI layout
@@ -21,7 +21,7 @@ Laboratory
 		ConfigForm[]
 </pre>
 
-## Communication
+## Widget communication
 
 In addition to the typical parent-child widget communication, and occasional cross-widget communication, the Laboratory listens at the top level (`Laboratory.js`) for data update events in order to keep the demo grid and generated code updated in real time.
 
@@ -30,7 +30,7 @@ In addition to the typical parent-child widget communication, and occasional cro
 * **/configuration/changed**: indicates that some data directly related to the display of the demo grid or generated code has changed
 	* Publishers:
 		* `ColumnGrid`: published when the grid's store is modified
-		* `FeatureEditor`: published when the store used for the `FeatureGrid` is modified
+		* `FeatureEditor`: published when the `FeatureGrid`'s store is modified
 		* `ConfigForm`: published when the form's `value` property changes
 	* Subscribers:
 		* `Laboratory`: when this topic is published the demo grid or generated code is updated (depending on which is visible)
