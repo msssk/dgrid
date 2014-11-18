@@ -37,7 +37,7 @@ In addition to the typical parent-child widget communication, and occasional cro
 	* Subscribers:
 		* `ColumnGrid`: keeps the store data constantly in sync with the UI form values
 
-* **/store/columns/update**: indicates that the data in the columns store (`ColumnGrid`) has changed
+* **/store/columns/update**: indicates that the data in the store containing column configuration information has changed
 	* Publishers:
 		* `ColumnGrid`: published when the grid's store is modified
 	* Subscribers:
