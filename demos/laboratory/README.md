@@ -66,8 +66,8 @@ This widget is initially visible when the page is loaded in the far left pane in
 
 #### API
 
-* `ColumnEditor#get('columns')`: returns an array of objects from the store that represent the user-defined columns; proxies to `ColumnGrid#get('columns')`
-* `ColumnEditor#addColumn/removeColumn`: these methods proxy to the respective methods on `ColumnGrid` and provide the ability to add and remove user-defined columns
+* `get('columns')`: returns an array of objects from the store that represent the user-defined columns; proxies to `ColumnGrid#get('columns')`
+* `addColumn/removeColumn`: these methods proxy to the respective methods on `ColumnGrid` and provide the ability to add and remove user-defined columns
 
 ### `ColumnGrid`
 
@@ -75,9 +75,9 @@ This widget is a little more than just a grid - it's a templated widget that con
 
 #### API
 
-* `ColumnGrid#get('columns')`: returns an array of objects from the store that represent the user-defined columns
-* `ColumnGrid#addColumn(label)`: adds a new column to the grid with the specified label, and auto-generates a field name based on the label
-* `ColumnGrid#removeColumn(target)`: target can be any value supported by dgrid's [`row` method](https://github.com/SitePen/dgrid/blob/master/doc/components/core-components/List.md#method-summary). The associated column definition will be removed from the store (and grid)
+* `get('columns')`: returns an array of objects from the store that represent the user-defined columns
+* `addColumn(label)`: adds a new column to the grid with the specified label, and auto-generates a field name based on the label
+* `removeColumn(target)`: target can be any value supported by dgrid's [`row` method](https://github.com/SitePen/dgrid/blob/master/doc/components/core-components/List.md#method-summary). The associated column definition will be removed from the store (and grid)
 
 ### `ColumnConfigForm`
 
@@ -92,11 +92,11 @@ This widget encapsulates the functionality in the "Grid Features" and "Column Fe
 
 #### API
 
-* `FeatureEditor#getModuleConfig(moduleId)`: returns an object representing the configured options for the specified dgrid module id
-* `FeatureEditor#isSelected(moduleId)`: returns a truthy value indicating if the specified dgrid mixin module id is selected
-* `FeatureEditor#filter(query)`: filter's the `FeatureGrid` by the specified query
-* `FeatureEditor#get('expandoColumn')`: if the `dgrid/Tree` mixin has been enabled, this method returns the name of the column that has been configured to render the tree expando icon
-* `FeatureEditor#set('featureType')`: `featureType` should be "grid" or "column"; filters the `FeatureGrid` by the specified type; proxies to `FeatureGrid#set('featureType')`. The same grid is displayed in both the "Grid Features" and "Column Features" tabs using this method to filter which rows are displayed
+* `getModuleConfig(moduleId)`: returns an object representing the configured options for the specified dgrid module id
+* `isSelected(moduleId)`: returns a truthy value indicating if the specified dgrid mixin module id is selected
+* `filter(query)`: filter's the `FeatureGrid` by the specified query
+* `get('expandoColumn')`: if the `dgrid/Tree` mixin has been enabled, this method returns the name of the column that has been configured to render the tree expando icon
+* `set('featureType')`: `featureType` should be "grid" or "column"; filters the `FeatureGrid` by the specified type; proxies to `FeatureGrid#set('featureType')`. The same grid is displayed in both the "Grid Features" and "Column Features" tabs using this method to filter which rows are displayed
 
 ### `FeatureGrid`
 
@@ -104,8 +104,8 @@ Like the `ColumnGrid` widget this is a templated widget that encapsulates not on
 
 #### API
 
-* `FeatureGrid#set('featureType')`: `featureType` should be "grid" or "column"; filters the grid by the specified type
-* `FeatureGrid#set('gridModule')`: `gridModule` should be "Grid" or "OnDemandGrid"; sets the base grid module of the user-defined grid and prevents incompatible combinations
+* `set('featureType')`: `featureType` should be "grid" or "column"; filters the grid by the specified type
+* `set('gridModule')`: `gridModule` should be "Grid" or "OnDemandGrid"; sets the base grid module of the user-defined grid and prevents incompatible combinations
 
 ### `ConfigForm`
 
