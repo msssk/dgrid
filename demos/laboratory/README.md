@@ -6,7 +6,7 @@
 	* demo grid
 	* generated code
 
-Module hierarchy
+#### Module hierarchy
 <pre>
 Laboratory
 	ColumnEditor
