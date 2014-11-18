@@ -100,7 +100,7 @@ This widget encapsulates the functionality in the "Grid Features" and "Column Fe
 
 ### `FeatureGrid`
 
-Like the `ColumnGrid` widget this is a templated widget that encapsulates not only the grid, but also its store. Logic is included to prevent incompatible configurations (e.g. `OnDemandGrid` with `drid/extensions/Pagination`).
+Like the `ColumnGrid` widget this is a templated widget that encapsulates not only the grid, but also its store. Logic is also included to prevent incompatible configurations (e.g. `OnDemandGrid` with `drid/extensions/Pagination`).
 
 #### API
 
@@ -109,6 +109,11 @@ Like the `ColumnGrid` widget this is a templated widget that encapsulates not on
 
 ### `ConfigForm`
 
-This module should not be instantiated directly. It provides the basic functionality for grid feature configuration forms (e.g. `Selection`, `Tree`). Each subclassing module should provide an object on the `defaultsObject` property that defines default values for configuration properties. This can typically be achieved by providing the dgrid module's prototype since these modules define their configurable properties and their default values. The default values are used both to initially populate the form and to filter values - if the user has not changed the value from the default, it will be omitted from the generated code. `moduleName` and `documentationUrl` properties should also be specified for display in the config form's UI.
+This module should not be instantiated directly. It provides the basic functionality for grid feature configuration forms (e.g. `Selection`, `Tree`).
 
-This base module provides rendering of a "Done" button as well as custom accessor methods to set unspecified properties to their default values and to filter out properties whose values match the default values when reading the `value` property.
+* renders a "Done" button
+* custom accessor methods
+	* `set('value')`: unspecified properties will be set to their default value
+	* `get('value')`: properties whose values match the default value will be omitted
+
+Each subclassing module should provide an object on the `defaultsObject` property that defines default values for configuration properties. This can typically be achieved by providing the dgrid module's prototype since these modules define their configurable properties and their default values. The default values are used both to initially populate the form and to filter values - if the user has not changed the value from the default, it will be omitted from the generated code. `moduleName` and `documentationUrl` properties should also be specified for display in the config form's UI.
