@@ -81,7 +81,7 @@ This widget is a little more than just a grid - it's a templated widget that con
 
 ### `ColumnConfigForm`
 
-This widget provides the UI for editing user-defined columns. Some sections are hidden or visible depending on which mixins are enabled (e.g. `Editor`, `ColumnHider`, etc.). It extends `dijit/form/_FormMixin` for basic form management and `the get/set('value')` methods. As a result, when the widget's `value` property is set, any values in the object provided that do not map directly to fields in the form are discarded. In order to correctly update items in the store, whenever the `value` is set the `id` property (which is not represented by any of the form fields) is persisted by the custom setter method. The custom getter method restores the `id` property to the object returned by `ColumnConfigForm#get('value')`.
+This widget provides the UI for editing user-defined columns. Some sections are hidden or visible depending on which mixins are enabled (e.g. `Editor`, `ColumnHider`, etc.). It extends `dijit/form/_FormMixin` for basic form management and the `get/set('value')` methods. As a result, when the widget's `value` property is set, any values in the object provided that do not map directly to fields in the form are discarded. In order to correctly update items in the store, whenever the `value` is set the `id` property (which is not represented by any of the form fields) is persisted by the custom setter method. The custom getter method restores the `id` property to the object returned by `ColumnConfigForm#get('value')`.
 
 ### `FeatureEditor`
 
