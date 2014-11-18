@@ -98,7 +98,7 @@ This widget encapsulates the functionality in the "Grid Features" and "Column Fe
 
 * `getModuleConfig(moduleId)`: returns an object representing the configured options for the specified dgrid module id
 * `isSelected(moduleId)`: returns a truthy value indicating if the specified dgrid mixin module id is selected
-* `filter(query)`: filter's the `FeatureGrid` by the specified query
+* `filter(query)`: filters the `FeatureGrid` by the specified query
 * `get('expandoColumn')`: if the `dgrid/Tree` mixin has been enabled, this method returns the name of the column that has been configured to render the tree expando icon
 * `set('featureType')`: `featureType` should be "grid" or "column"; filters the `FeatureGrid` by the specified type; proxies to `FeatureGrid#set('featureType')`. The same grid is displayed in both the "Grid Features" and "Column Features" tabs using this method to filter which rows are displayed
 
