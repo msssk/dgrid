@@ -37,7 +37,7 @@ In addition to the typical parent-child widget communication, and occasional cro
 	* Subscribers:
 		* `ColumnGrid`: keeps the store data constantly in sync with the UI form values
 
-* **/store/columns/update**: indicates that the data in the store containing column configuration information has changed
+* **/store/columns/update**: indicates that column configuration data has been updated in the store
 	* Publishers:
 		* `ColumnGrid`: published when the grid's store is modified
 	* Subscribers:
@@ -59,7 +59,7 @@ This is the top-level widget. It provides the full-page UI layout and manages ch
 * updating the demo grid (`_showDemoGrid`) or generated code (`_generateCode`), depending on which is visible
 	* both the `_showDemoGrid` and `_generateCode` methods rely on the `_generateGridOptions` method to read the current configuration from the UI and calculate a dgrid options object to pass to the grid constructor function
 * the "About" dialog
-* 
+
 ### `ColumnEditor.js`
 
 This widget is initially visible when the page is loaded in the far left pane in the tab titled "Columns". It is a lightweight container for the `ColumnGrid` and `ColumnConfigForm` widgets.
@@ -68,7 +68,7 @@ This widget is initially visible when the page is loaded in the far left pane in
 
 * `ColumnEditor#get('columns')`: returns an array of objects from the store that represent the user-defined columns; proxies to `ColumnGrid#get('columns')`
 * `ColumnEditor#addColumn/removeColumn`: these methods proxy to the respective method on `ColumnGrid` and provide the ability to add and remove user-defined columns
-* 
+
 ### `ColumnGrid`
 
 This widget is a little more than just a grid - it's a templated widget that contains a grid, but it also manages the grid's store and the new column entry field in the UI (visible directly above the grid).
@@ -106,7 +106,7 @@ Like the `ColumnGrid` widget this is a templated widget that encapsulates not on
 
 * `FeatureGrid#set('featureType')`: `featureType` should be "grid" or "column"; filters the grid by the specified type
 * `FeatureGrid#set('gridModule')`: `gridModule` should be "Grid" or "OnDemandGrid"; sets the base grid module of the user-defined grid and prevents incompatible combinations
-* 
+
 ### `ConfigForm`
 
 This module should not be instantiated directly. It provides the basic functionality for grid feature configuration forms (e.g. `Selection`, `Tree`). Each subclassing module should provide an object on the `defaultsObject` property that defines default values for configuration properties. This can typically be achieved by providing the dgrid module's prototype since these modules define their configurable properties and their default values. The default values are used both to initially populate the form and to filter values - if the user has not changed the value from the default, it will be omitted from the generated code. `moduleName` and `documentationUrl` properties should also be specified for display in the config form's UI.
