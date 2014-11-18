@@ -67,7 +67,7 @@ This widget is initially visible when the page is loaded in the far left pane in
 #### API
 
 * `ColumnEditor#get('columns')`: returns an array of objects from the store that represent the user-defined columns; proxies to `ColumnGrid#get('columns')`
-* `ColumnEditor#addColumn/removeColumn`: these methods proxy to the respective method on `ColumnGrid` and provide the ability to add and remove user-defined columns
+* `ColumnEditor#addColumn/removeColumn`: these methods proxy to the respective methods on `ColumnGrid` and provide the ability to add and remove user-defined columns
 
 ### `ColumnGrid`
 
