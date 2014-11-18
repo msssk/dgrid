@@ -33,7 +33,7 @@ In addition to the typical parent-child widget communication, and occasional cro
 		* `FeatureEditor`: published when the `FeatureGrid`'s store is modified
 		* `ConfigForm`: published when the form's `value` property changes
 	* Subscribers:
-		* `Laboratory`: when this topic is published the demo grid or generated code is updated (depending on which is visible)
+		* `Laboratory`: keeps the demo grid or generated code updated (depending on which is visible)
 
 * **/column/changed**: indicates that column configuration data has been updated in the UI
 	* Publishers:
