@@ -440,13 +440,7 @@ define([
 			return this.gotoPage(page).then(function (results) {
 				// Emit on a separate turn to enable event to be used consistently for
 				// initial render, regardless of whether the backing store is async
-				setTimeout(function () {
-					on.emit(self.domNode, 'dgrid-refresh-complete', {
-						bubbles: true,
-						cancelable: false,
-						grid: self
-					});
-				}, 0);
+				self._emitRefreshComplete();
 
 				return results;
 			});

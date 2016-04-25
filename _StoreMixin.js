@@ -95,6 +95,9 @@ define([
 			if (this._renderedCollection) {
 				this._cleanupCollection();
 			}
+			if (this._refreshTimeout) {
+				clearTimeout(this._refreshTimeout);
+			}
 		},
 
 		_configColumn: function (column) {
@@ -105,6 +108,23 @@ define([
 				this._columnsWithSet[column.field] = column;
 			}
 			this.inherited(arguments);
+		},
+
+		_emitRefreshComplete: function () {
+			// summary:
+			//		Handles emitting the dgrid-refresh-complete event on a separate turn,
+			//		to enable event to be used consistently regardless of whether the backing store is async.
+
+			var self = this;
+
+			this._refreshTimeout = setTimeout(function () {
+				on.emit(self.domNode, 'dgrid-refresh-complete', {
+					bubbles: true,
+					cancelable: false,
+					grid: self
+				});
+				self._refreshTimeout = null;
+			}, 0);
 		},
 
 		_setCollection: function (collection) {

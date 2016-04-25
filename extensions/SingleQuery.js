@@ -23,7 +23,17 @@ define([
 			}
 
 			return this._trackError(function () {
-				return self.renderQueryResults(self._renderedCollection.fetch());
+				var queryResults = self._renderedCollection.fetch();
+
+				queryResults.totalLength.then(function (total) {
+					// Record total so it can be retrieved later via get('total')
+					self._total = total;
+				});
+
+				return self.renderQueryResults(queryResults).then(function (rows) {
+					self._emitRefreshComplete();
+					return rows;
+				});
 			});
 		},
 
