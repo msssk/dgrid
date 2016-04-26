@@ -113,9 +113,10 @@ define([
 						}
 						return results;
 					};
-					// Include level information on query for renderQuery case
 					if ('level' in target) {
-						query.level = target.level;
+						// Include level information on query for renderQuery case;
+						// include on container for insertRow to detect in other cases
+						container.level = query.level = target.level;
 					}
 
 					// Add the query to the promise chain
@@ -207,12 +208,15 @@ define([
 			return columnArray;
 		},
 
-		insertRow: function (object) {
+		insertRow: function (object, container, beforeNode, i, options) {
+			var level = this._currentLevel = options && 'queryLevel' in options ? options.queryLevel + 1 :
+				'level' in container ? container.level + 1 : 0;
+
 			var rowElement = this.inherited(arguments);
 
 			// Auto-expand (shouldExpand) considerations
 			var row = this.row(rowElement),
-				expanded = this.shouldExpand(row, this._currentLevel, this._expanded[row.id]);
+				expanded = this.shouldExpand(row, level, this._expanded[row.id]);
 
 			if (expanded) {
 				this.expand(rowElement, true, true);
@@ -302,11 +306,10 @@ define([
 					// summary:
 					//		Renders a cell that can be expanded, creating more rows
 
-					var level = Number(options && options.queryLevel) + 1,
+					var level = grid._currentLevel,
 						mayHaveChildren = !grid.collection.mayHaveChildren || grid.collection.mayHaveChildren(object),
 						expando, node;
 
-					level = grid._currentLevel = isNaN(level) ? 0 : level;
 					expando = column.renderExpando(level, mayHaveChildren,
 						grid._expanded[grid.collection.getIdentity(object)], object);
 					expando.level = level;
