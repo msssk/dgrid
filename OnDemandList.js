@@ -183,10 +183,7 @@ define([
 								domConstruct.destroy(noDataNode);
 								delete self.noDataNode;
 							}
-							self.noDataNode = noDataNode = domConstruct.create('div', {
-								className: 'dgrid-no-data',
-								innerHTML: self.noDataMessage
-							});
+							noDataNode = self._createNoDataNode();
 							parentNode.insertBefore(noDataNode, self._getFirstRowSibling(parentNode));
 						}
 						self._calcAverageRowHeight(trs);

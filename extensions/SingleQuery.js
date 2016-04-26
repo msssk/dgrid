@@ -1,7 +1,8 @@
 define([
 	'dojo/_base/declare',
+	'dojo/dom-construct',
 	'dgrid/_StoreMixin'
-], function (declare, _StoreMixin) {
+], function (declare, domConstruct, _StoreMixin) {
 	return declare(_StoreMixin, {
 		// summary:
 		//		dgrid mixin which implements the refresh method to
@@ -9,7 +10,6 @@ define([
 		//		specified, to retrieve all relevant results at once.
 		//		Appropriate for grids using memory stores with small
 		//		result set sizes.
-		//		From http://dgrid.io/tutorials/1.0/single_query/
 
 		refresh: function () {
 			var self = this;
@@ -23,11 +23,25 @@ define([
 			}
 
 			return this._trackError(function () {
+				var loadingNode = self.loadingNode = domConstruct.create('div', {
+					className: 'dgrid-loading',
+					innerHTML: self.loadingMessage
+				}, self.contentNode);
+
 				var queryResults = self._renderedCollection.fetch();
 
 				queryResults.totalLength.then(function (total) {
 					// Record total so it can be retrieved later via get('total')
 					self._total = total;
+
+					if (!total) {
+						self.contentNode.appendChild(self._createNoDataNode());
+					}
+				});
+
+				queryResults.always(function () {
+					domConstruct.destroy(loadingNode);
+					self.loadingNode = null;
 				});
 
 				return self.renderQueryResults(queryResults).then(function (rows) {

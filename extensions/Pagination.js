@@ -575,11 +575,7 @@ define([
 								domConstruct.destroy(grid.noDataNode);
 								delete grid.noDataNode;
 							}
-							// If there are no results, display the no data message.
-							grid.noDataNode = domConstruct.create('div', {
-								className: 'dgrid-no-data',
-								innerHTML: grid.noDataMessage
-							}, grid.contentNode);
+							grid.contentNode.appendChild(grid._createNoDataNode());
 						}
 
 						// Update status text based on now-current page and total.

@@ -3,8 +3,8 @@
 The SingleQuery extension performs a single store request with no range information.  Its implementation is thus
 much simpler than OnDemandList and Pagination, and is suitable primarily for small in-memory result sets.
 
-SingleQuery is constructed similarly to Pagination, in that you need to mix it in on top of List or Grid
-(*not* OnDemandList or OnDemandGrid).  Since it reqeusts and renders all items at once, it also works well
+SingleQuery is constructed similarly to Pagination, in that it should be mixed into List or Grid
+(*not* OnDemandList or OnDemandGrid).  Since it requests and renders all items at once, it also works well
 in conjunction with the `dgrid-autoheight` class so that the grid's height is determined by its data.
 
 ```js
