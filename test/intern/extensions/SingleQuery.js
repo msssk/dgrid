@@ -53,10 +53,5 @@ define([
 			assert.strictEqual(grid.get('total'), numItems,
 				'grid.get(\'total\') should return total number of items');
 		});
-
-		test.test('Should fire dgrid-refresh-complete event, always on a separate turn than refresh', function () {
-			var dfd = this.async(1000);
-			grid.on('dgrid-refresh-complete', dfd.resolve);
-		});
 	});
 });
