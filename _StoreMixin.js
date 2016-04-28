@@ -247,7 +247,7 @@ define([
 			var result = this.inherited(arguments);
 
 			if (!this.collection) {
-				this.contentNode.appendChild(this._createNoDataNode());
+				this.contentNode.insertBefore(this._createNoDataNode(), this._getFirstRowSibling(this.contentNode));
 			}
 
 			return result;
@@ -462,7 +462,7 @@ define([
 			// Check to see if we are now empty...
 			if (!preserveDom && (this.up(row).element === rowElement) && (this.down(row).element === rowElement)) {
 				// ...we are empty, so show the no data message.
-				this.contentNode.appendChild(this._createNoDataNode());
+				this.contentNode.insertBefore(this._createNoDataNode(), this._getFirstRowSibling(this.contentNode));
 			}
 
 			var rows = (options && options.rows) || this._rows;
