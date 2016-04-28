@@ -219,7 +219,9 @@ define([
 				this.noDataNode = domConstruct.create('div', {
 					className: 'dgrid-no-data',
 					innerHTML: this.noDataMessage
-				}, this.contentNode);
+				});
+
+				this.contentNode.insertBefore(this.noDataNode, this._getFirstRowSibling(this.contentNode));
 			}
 
 			return result;
@@ -439,7 +441,9 @@ define([
 				this.noDataNode = domConstruct.create('div', {
 					className: 'dgrid-no-data',
 					innerHTML: this.noDataMessage
-				}, this.contentNode);
+				});
+
+				this.contentNode.insertBefore(this.noDataNode, this._getFirstRowSibling(this.contentNode));
 			}
 
 			var rows = (options && options.rows) || this._rows;
