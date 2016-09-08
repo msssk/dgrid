@@ -3,11 +3,12 @@ define([
 	'dojo/aspect',
 	'dojo/dom-class',
 	'dojo/on',
+	'dojo/query',
 	'dojo/_base/lang',
 	'dojo/has',
 	'./util/misc',
 	'dojo/_base/sniff'
-], function (declare, aspect, domClass, on, lang, has, miscUtil) {
+], function (declare, aspect, domClass, on, querySelector, lang, has, miscUtil) {
 
 	var delegatingInputTypes = {
 			checkbox: 1,
@@ -452,14 +453,23 @@ define([
 	var moveFocusVertical = Keyboard.moveFocusVertical = function (event, steps) {
 		var cellNavigation = this.cellNavigation,
 			target = this[cellNavigation ? 'cell' : 'row'](event),
-			columnId = cellNavigation && target.column.id,
+			next;
+
+		// If there is no valid target then a part of the table that is not a cell or row may have been focused
+		// (e.g. by clicking mouse in the empty portion of the contentNode when there aren't enough rows to fill it)
+		// Move focus to the first row (or cell if cellNavigation is enabled)
+		if (!target || !target.element) {
+			moveFocusEnd.call(this, event, true);
+		} else {
 			next = this.down(this._focusedNode, steps, true);
 
-		// Navigate within same column if cell navigation is enabled
-		if (cellNavigation) {
-			next = this.cell(next, columnId);
+			// Navigate within same column if cell navigation is enabled
+			if (cellNavigation) {
+				next = this.cell(next, target.column.id);
+			}
+
+			this._focusOnNode(next, false, event);
 		}
-		this._focusOnNode(next, false, event);
 
 		event.preventDefault();
 	};
@@ -484,10 +494,21 @@ define([
 		if (!this.cellNavigation) {
 			return;
 		}
-		var isHeader = !this.row(event), // header reports row as undefined
-			currentNode = this['_focused' + (isHeader ? 'Header' : '') + 'Node'];
+		var isHeader = this.headerNode.contains(event.target),
+			currentNode = this['_focused' + (isHeader ? 'Header' : '') + 'Node'],
+			isEmpty = querySelector('tr', this.contentNode).length === 0;
 
-		this._focusOnNode(this.right(currentNode, steps), isHeader, event);
+		// If there are no rows, there's nothing to navigate
+		if (!isHeader && isEmpty) {
+			return;
+		}
+
+		if (!currentNode) {
+			moveFocusEnd.call(this, event, true);
+		} else {
+			this._focusOnNode(this.right(currentNode, steps), isHeader, event);
+		}
+
 		event.preventDefault();
 	};
 
@@ -527,7 +548,10 @@ define([
 			endChild = contentNode[scrollToTop ? 'firstChild' : 'lastChild'],
 			hasPreload = endChild.className.indexOf('dgrid-preload') > -1,
 			endTarget = hasPreload ? endChild[(scrollToTop ? 'next' : 'previous') + 'Sibling'] : endChild,
-			handle;
+			currentCell,
+			columnId,
+			handle,
+			i;
 
 		// Scroll explicitly rather than relying on native browser scrolling
 		// (which might use smooth scrolling, which could incur extra renders for OnDemandList)
@@ -553,7 +577,26 @@ define([
 			// End row is loaded; focus the first/last row/cell now
 			if (cellNavigation) {
 				// Preserve column that was currently focused
-				endTarget = this.cell(endTarget, this.cell(event).column.id);
+				currentCell = this.cell(event);
+
+				if (currentCell && currentCell.column) {
+					columnId = currentCell.column.id;
+				} else {
+					// If there is no current cell, get the id of the first visible column
+					i = 0;
+					while (this.subRows[0][i].hidden) {
+						i++;
+
+						// If all columns are hidden there is no need to navigate
+						if (i === this.subRows[0].length) {
+							return;
+						}
+					}
+
+					columnId = this.subRows[0][i].id;
+				}
+
+				endTarget = this.cell(endTarget, columnId);
 			}
 			this._focusOnNode(endTarget, false, event);
 		}
