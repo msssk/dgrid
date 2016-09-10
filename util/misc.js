@@ -15,8 +15,7 @@ define([
 		extraSheet,
 		removeMethod,
 		rulesProperty,
-		invalidCssChars = /([^A-Za-z0-9_\u00A0-\uFFFF-])/g,
-		maxElementHeight;
+		invalidCssChars = /([^A-Za-z0-9_\u00A0-\uFFFF-])/g;
 
 	function removeRule(index) {
 		// Function called by the remove method on objects returned by addCssRule.
@@ -41,64 +40,6 @@ define([
 				extraRules[i]--;
 			}
 		}
-	}
-
-	function computeDecreasedValidHeight(node, heightInfo) {
-		var currentTestHeight = heightInfo.currentTestHeight;
-		var lastGoodHeight = heightInfo.lastGoodHeight;
-		var lastTestHeight;
-
-		// Backtrack by 50% of difference between currentTestHeight and lastGoodHeight
-		// each loop until we're below max height
-
-		// This should be:
-		// node.offsetHeight !== currentTestHeight
-		// but observed behavior (at least in Chrome) is that node.offsetHeight can
-		// vary from the pixel value specified in the CSS height property by 1
-		while (Math.abs(node.offsetHeight - currentTestHeight) > 1) {
-			lastTestHeight = currentTestHeight;
-			currentTestHeight -= Math.floor((currentTestHeight - lastGoodHeight) / 2);
-
-			if (lastTestHeight === currentTestHeight) {
-				break;
-			}
-
-			node.style.height = currentTestHeight + 'px';
-		}
-
-		heightInfo.currentTestHeight = currentTestHeight;
-		heightInfo.lastBadHeight = lastTestHeight;
-		heightInfo.lastGoodHeight = currentTestHeight;
-	}
-
-	function computeIncreasedValidHeight(node, heightInfo) {
-		var currentTestHeight = heightInfo.currentTestHeight;
-		var lastBadHeight = heightInfo.lastBadHeight;
-		var lastGoodHeight = heightInfo.lastGoodHeight;
-		var lastTestHeight = heightInfo.currentTestHeight;
-
-		// Increase height by 50% of difference between lastBadHeight and currentTestHeight
-		// each loop until we find the precise max height
-
-		// This should be:
-		// node.offsetHeight === currentTestHeight
-		// but observed behavior (at least in Chrome) is that node.offsetHeight can
-		// vary from the pixel value specified in the CSS height property by 1
-		while (Math.abs(node.offsetHeight - currentTestHeight) < 2) {
-			lastGoodHeight = currentTestHeight;
-			currentTestHeight += Math.floor((lastBadHeight - currentTestHeight) / 2);
-
-			if (lastTestHeight === currentTestHeight) {
-				break;
-			}
-
-			lastTestHeight = currentTestHeight;
-			node.style.height = currentTestHeight + 'px';
-		}
-
-		heightInfo.currentTestHeight = currentTestHeight;
-		heightInfo.lastBadHeight = lastTestHeight;
-		heightInfo.lastGoodHeight = lastGoodHeight;
 	}
 
 	var util = {
@@ -236,69 +177,6 @@ define([
 			//		replaced by the given string rather than being escaped
 
 			return typeof id === 'string' ? id.replace(invalidCssChars, replace || '\\$1') : id;
-		},
-
-		getMaxElementHeight: function() {
-			// summary:
-			//		Browsers have a maximum height an element can be. If this value is exceeded, the element
-			//		will either render with a height of zero (FF) or at the maximum height (Chrome, IE).
-
-			if (maxElementHeight) {
-				return maxElementHeight;
-			}
-
-			var node = document.createElement('div');
-			var heightInfo = {
-				currentTestHeight: 10000000,
-				lastBadHeight: 0,
-				lastGoodHeight: 0
-			};
-
-			node.style.border = 'none';
-			node.style.boxShadow = 'none';
-			node.style.margin = 0;
-			node.style.padding = 0;
-			node.style.position = 'absolute';
-			node.style.left = '-1000px';
-			node.style.height = heightInfo.currentTestHeight + 'px';
-			node.style.width = '1px';
-
-			document.body.appendChild(node);
-
-			// Double the node's height each loop until we exceed max height
-			while (node.offsetHeight === heightInfo.currentTestHeight) {
-				heightInfo.lastGoodHeight = heightInfo.currentTestHeight;
-				heightInfo.currentTestHeight *= 2;
-				node.style.height = heightInfo.currentTestHeight + 'px';
-			}
-
-			// Some browsers (Chrome, IE) will return the max height from node.offsetHeight when the CSS
-			// height property has been set too high
-			if (node.offsetHeight > 0) {
-				maxElementHeight = node.offsetHeight;
-
-				return maxElementHeight;
-			}
-
-			// For others (Firefox) that return 0 for node.offsetHeight, we can pinpoint the max height
-			// by bisecting
-			while (heightInfo.currentTestHeight !== heightInfo.lastGoodHeight) {
-				computeDecreasedValidHeight(node, heightInfo);
-				computeIncreasedValidHeight(node, heightInfo);
-			}
-
-			node.style.height = heightInfo.lastGoodHeight + 'px';
-
-			while (node.offsetHeight === 0) {
-				heightInfo.lastGoodHeight--;
-				node.style.height = heightInfo.lastGoodHeight + 'px';
-			}
-
-			maxElementHeight = node.offsetHeight;
-
-			document.body.removeChild(node);
-
-			return maxElementHeight;
 		}
 	};
 	return util;
