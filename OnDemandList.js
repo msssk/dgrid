@@ -7,8 +7,9 @@ define([
 	'dojo/on',
 	'dojo/when',
 	'dojo/query',
+	'./util/dom',
 	'./util/misc'
-], function (List, _StoreMixin, declare, lang, domConstruct, on, when, query, miscUtil) {
+], function (List, _StoreMixin, declare, lang, domConstruct, on, when, query, domUtil, miscUtil) {
 
 	var preloadId = 0;
 
@@ -800,7 +801,24 @@ define([
 		},
 
 		_adjustPreloadHeight: function (preload, noMax) {
-			preload.node.style.height = this._calculatePreloadHeight(preload, noMax) + 'px';
+			//preload.node.style.height = this._calculatePreloadHeight(preload, noMax) + 'px';
+			var height = this._calculatePreloadHeight(preload, noMax);
+			var fulfilled = 0;
+			var preloadChild;
+
+			preload.node.style.height = 'auto';
+
+			while (fulfilled < height) {
+				preloadChild = preload.node.ownerDocument.createElement('div');
+				preload.node.appendChild(preloadChild);
+				domUtil.setMaxHeight(preloadChild);
+				fulfilled += preloadChild.offsetHeight;
+			}
+
+			if (fulfilled > height) {
+				preloadChild = preload.node.lastChild;
+				preloadChild.style.height = (preloadChild.clientHeight - (fulfilled - height)) + 'px';
+			}
 		},
 
 		_calculatePreloadHeight: function (preload, noMax) {
