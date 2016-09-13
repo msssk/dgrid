@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Test store with Too Many Rows</title>
+		<meta name="viewport" content="width=570">
+		<style>
+			@import "../../dojo/resources/dojo.css";
+			@import "../css/dgrid.css";
+			@import "../css/skins/claro.css";
+
+			h2 {
+				margin: 12px;
+			}
+
+			.heading {
+				font-weight: bold;
+				padding-bottom: 0.25em;
+			}
+
+			.dgrid {
+				margin: 10px;
+			}
+		</style>
+	</head>
+
+	<body class="claro">
+		<div id="grid"></div>
+
+		<script src="../../dojo/dojo.js" data-dojo-config="async: true"></script>
+		<script>
+			require([
+				'dgrid/OnDemandGrid',
+				'dgrid/test/data/InfiniteStore'
+			], function (OnDemandGrid, InfiniteStore) {
+				window.grid = new OnDemandGrid({
+					pagingDelay: 100,
+					pagingMethod: 'throttleDelayed',
+					collection: new InfiniteStore(1000000),
+					columns: [
+						{
+							field: 'id',
+							label: 'Id',
+							sortable: false
+						},
+						{
+							field: 'id',
+							label: 'Name',
+							formatter: function(value) {
+								return 'Item ' + value;
+							},
+							sortable: false
+						}
+					]
+				}, 'grid');
+			});
+
+		</script>
+	</body>
+</html>

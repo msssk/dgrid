@@ -23,6 +23,8 @@ define(function() {
 	}
 
 	return {
+		withinTolerance: withinTolerance,
+
 		setMaxHeight: function(node, options) {
 			options = options || {};
 
@@ -55,21 +57,23 @@ define(function() {
 				lastBadHeight = testHeight;
 			}
 
-			// Some browsers (Chrome, IE) will return the max height from node.offsetHeight when the CSS
+			// Some browsers (Chrome, IE) will return the max height from node.clientHeight when the CSS
 			// height property has been set too high
-			if (node.offsetHeight > 0) {
-				node.style.height = node.offsetHeight + 'px';
+			if (node.clientHeight > 0) {
+				node.style.height = node.clientHeight + 'px';
 
 				return;
 			}
 
-			// For browsers that return zero for node.offsetHeight, do some testing to find the max valid height
+			// For browsers that return zero for node.clientHeight, do some testing to find the max valid height
 
 			// We don't need to find the precise max height, just quickly find a close approximation
 			while (tries++ < maxTries) {
 				if (withinTolerance(node.clientHeight, testHeight, tolerance)) {
+					lastGoodHeight = testHeight;
 					testHeight += Math.floor((lastBadHeight - testHeight) / 2);
 				} else {
+					lastBadHeight = testHeight;
 					testHeight -= Math.floor((testHeight - lastGoodHeight) / 2);
 				}
 

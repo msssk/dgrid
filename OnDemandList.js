@@ -802,22 +802,58 @@ define([
 
 		_adjustPreloadHeight: function (preload, noMax) {
 			//preload.node.style.height = this._calculatePreloadHeight(preload, noMax) + 'px';
+			//return;
 			var height = this._calculatePreloadHeight(preload, noMax);
+			var newHeight;
+			var approximateMaxHeight = 0;
 			var fulfilled = 0;
+			var remaining = 0;
 			var preloadChild;
 
 			preload.node.style.height = 'auto';
+			preload.node.innerHTML = '';
 
-			while (fulfilled < height) {
+			// This number may need tweaking - it's a guess at a safe height for most environments
+			if (height < 500000) {
 				preloadChild = preload.node.ownerDocument.createElement('div');
 				preload.node.appendChild(preloadChild);
-				domUtil.setMaxHeight(preloadChild);
+				preloadChild.style.height = height + 'px';
+
+				if (domUtil.withinTolerance(preloadChild.offsetHeight, height)) {
+					fulfilled = height;
+				}
+			}
+
+			while (fulfilled < height) {
+				// If the attempt in the 'if' block right before this loop was unsuccessful,
+				// there will already be a preloadChild, so use it
+				if (!preloadChild) {
+					preloadChild = preload.node.ownerDocument.createElement('div');
+					preload.node.appendChild(preloadChild);
+				}
+
+				if (approximateMaxHeight) {
+					newHeight = Math.min(approximateMaxHeight, remaining);
+					preloadChild.style.height = newHeight + 'px';
+
+					if (!domUtil.withinTolerance(preloadChild.offsetHeight, newHeight)) {
+						domUtil.setMaxHeight(preloadChild);
+						approximateMaxHeight = preloadChild.offsetHeight;
+					}
+				} else {
+					domUtil.setMaxHeight(preloadChild);
+					approximateMaxHeight = preloadChild.offsetHeight;
+				}
+
 				fulfilled += preloadChild.offsetHeight;
+				remaining = height - fulfilled;
+				preloadChild = null;
 			}
 
 			if (fulfilled > height) {
 				preloadChild = preload.node.lastChild;
-				preloadChild.style.height = (preloadChild.clientHeight - (fulfilled - height)) + 'px';
+				newHeight = preloadChild.offsetHeight - (fulfilled - height);
+				preloadChild.style.height = newHeight + 'px';
 			}
 		},
 
