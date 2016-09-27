@@ -105,38 +105,6 @@
 		<script src="../../dojo/dojo.js" data-dojo-config="async: true"></script>
 
 		<script>
-			function throttle(callback, delay) {
-			    var ready = true,
-			        args = null;
-
-			    return function throttled() {
-			        var context = this;
-
-			        if (ready) {
-			            ready = false;
-
-			            setTimeout(function() {
-			                ready = true;
-
-			                if (args) {
-			                    throttled.apply(context);
-			                }
-			            }, delay);
-
-			            if (args) {
-			                callback.apply(this, args);
-			                args = null;
-			            } else {
-			                callback.apply(this, arguments);
-			            }
-			        } else {
-			            args = arguments;
-			        }
-			    };
-			}
-		</script>
-
-		<script>
 			require([
 				'dojo/dom',
 				'dojo/on'
@@ -149,22 +117,24 @@
 				// TODO: do something about OSX
 				// http://stackoverflow.com/questions/7492062/css-overflow-scroll-always-show-vertical-scroll-bar
 				// If calculated scrollbarWidth is 0, then can we assume it is 7px?
-				var scrollbarWidth = content.offsetWidth - content.clientWidth;
+				// IE will not make the scrollbar scrollable if no content is visible, so make 1px of it visible
+				// maybe low opacity?
+				var scrollbarWidth = content.offsetWidth - content.clientWidth + 1;
 				var row;
 				var i;
 
 				// hide the content's scrollbar
-				/* * /
+				/* */
 				viewport.style.width = (container.clientWidth - scrollbarWidth) + 'px';
 				content.style.width = container.clientWidth + 'px';
 				scroller.style.width = scrollbarWidth + 'px';
 				/* */
 
 				// make both scrollbars visible for testing
-				/* */
+				/* * /
 				viewport.style.width = (container.clientWidth - scrollbarWidth - 1) + 'px';
-				content.style.width = (container.clientWidth - scrollbarWidth - 1) + 'px';
-				scroller.style.width = scrollbarWidth + 'px';
+				content.style.width = (container.clientWidth - (scrollbarWidth + 1) - 1) + 'px';
+				scroller.style.width = (scrollbarWidth + 1) + 'px';
 				/* */
 
 				for (i = 0; i < 500; i++) {
@@ -181,57 +151,29 @@
 				var handleScrollerScroll;
 				var contentScrollHandle;
 				var scrollerScrollHandle;
+				var contentScrollPauseCounter = 0;
+				var scrollerScrollPauseCounter = 0;
 				var waiting = false;
 
-				handleContentScroll = throttle(function(event) {
-					var scrollEnableHandle;
-
-					if (!waiting) {
-						// I attempted using a flag to disable the handler, and using
-						// on.pausable, but still had perf issues
-						scrollerScrollHandle.remove();
-
-						window.requestAnimationFrame(function() {
-							scroller.scrollTop = event.target.scrollTop;
-
-							if (scrollEnableHandle) {
-								clearTimeout(scrollEnableHandle);
-							}
-
-							scrollEnableHandle = setTimeout(function() {
-								scrollerScrollHandle = on(scroller, 'scroll', handleScrollerScroll);
-							}, 100);
-
-							waiting = false;
-						});
-
-						waiting = true;
+				function handleContentScroll(event) {
+					if (contentScrollPauseCounter) {
+						contentScrollPauseCounter--;
+						return;
 					}
-				}, 17);
 
-				handleScrollerScroll = throttle(function(event) {
-					var scrollEnableHandle;
+					scrollerScrollPauseCounter++;
+					scroller.scrollTop = event.target.scrollTop;
+				}
 
-					if (!waiting) {
-						contentScrollHandle.remove();
-
-						window.requestAnimationFrame(function() {
-							content.scrollTop = event.target.scrollTop;
-
-							if (scrollEnableHandle) {
-								clearTimeout(scrollEnableHandle);
-							}
-
-							scrollEnableHandle = setTimeout(function() {
-								contentScrollHandle = on(content, 'scroll', handleContentScroll);
-							}, 100);
-
-							waiting = false;
-						});
-
-						waiting = true;
+				function handleScrollerScroll(event) {
+					if (scrollerScrollPauseCounter) {
+						scrollerScrollPauseCounter--;
+						return;
 					}
-				}, 17);
+
+					contentScrollPauseCounter++;
+					content.scrollTop = event.target.scrollTop;
+				}
 
 				contentScrollHandle = on(content, 'scroll', handleContentScroll);
 				scrollerScrollHandle = on(scroller, 'scroll', handleScrollerScroll);
