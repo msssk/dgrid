@@ -327,6 +327,15 @@ html.has-touch .dgrid-column-resizer {
 .dgrid-page-size {
   margin: 1px 4px 0 4px;
 }
+.dgrid-virtual-scrollbar {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
 .dgrid-rtl-swap .dgrid-header-row {
   right: 0;
   left: 17px;

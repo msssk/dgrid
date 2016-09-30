@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>VirtualScrollbar Test</title>
+		<style>
+			@import "../../dojo/resources/dojo.css";
+			@import "../css/dgrid.css";
+			@import "../css/skins/claro.css";
+
+			#listNode {
+				height: 600px;
+				margin: 20px;
+				width: 800px;
+			}
+
+			.dgrid-row {
+				border-bottom: 1px solid rgb(70, 107, 145);
+				font-size: 16px;
+				padding: 6px;
+			}
+		</style>
+	</head>
+
+	<body class="claro">
+		<div id="listNode"></div>
+
+		<script src="../../dojo/dojo.js" data-dojo-config="async: true"></script>
+
+		<script>
+			require([
+				'dojo/_base/declare',
+				'dojo/dom',
+				'dgrid/OnDemandList',
+				'dgrid/extensions/VirtualScrollbar',
+				'dgrid/test/data/ImaginaryStore'
+			], function(declare, dom, OnDemandList, VirtualScrollbar, ImaginaryStore) {
+				var VSList = declare([OnDemandList, VirtualScrollbar]);
+				var store = new ImaginaryStore(5000);
+				var list = new VSList({
+					collection: store,
+					renderRow: function(item) {
+						var row = document.createElement('div');
+
+						row.textContent = 'Row ' + item.id;
+
+						return row;
+					}
+				}, dom.byId('listNode'));
+			})
+		</script>
+	</body>
+</html>
