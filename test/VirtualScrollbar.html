@@ -37,7 +37,8 @@
 			], function(declare, dom, OnDemandList, VirtualScrollbar, ImaginaryStore) {
 				var VSList = declare([OnDemandList, VirtualScrollbar]);
 				var store = new ImaginaryStore(5000);
-				var list = new VSList({
+
+				window.list = new VSList({
 					collection: store,
 					renderRow: function(item) {
 						var row = document.createElement('div');
