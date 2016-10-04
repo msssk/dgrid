@@ -7,9 +7,9 @@ define([
 		buildRendering: function() {
 			this.inherited(arguments);
 
-			// TODO: add 1px for IE because the scrollbar wont' display if it has no visible content
 			// TODO: if 0, set to 7 (8?) for Safari (scrollbar is hidden by default)
-			var scrollbarWidth = this.bodyNode.offsetWidth - this.bodyNode.clientWidth;
+			// Add 1 pixel: some browsers (IE, FF) don't make the scrollbar active if it doesn't have visible content
+			var scrollbarWidth = this.bodyNode.offsetWidth - this.bodyNode.clientWidth + 1;
 
 			this.scrollbarNode = domConstruct.create('div', {
 				className: 'dgrid-virtual-scrollbar'
