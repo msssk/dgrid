@@ -1,12 +1,32 @@
+/*
+ * ASSUMPTION: there are only two preload nodes, the top and the bottom
+ * ASSUMPTION: all pre-existing scroll logic will relate to content node (grid.bodyNode)
+ * 		Only this module will listen to scrolling on grid.scrollbarNode
+ * 		All other modules will listen continue to listen to scrolling on grid.bodyNode
+ */
+
 define([
 	'dojo/_base/declare',
 	'dojo/dom-construct',
 	'dojo/on'
 ], function(declare, domConstruct, on) {
+	var BOTTOM_PRELOAD_HEIGHT = 1000;
+	var TOP_PRELOAD_HEIGHT = 5000;
+	var SCROLLBAR_MAX_HEIGHT = 10000;
+
+	// for debugging
+	function assert(condition, message) {
+		if (!condition) {
+			console.warn(message);
+		}
+	}
+
 	return declare(null, {
+		// This is the value of the total theoretical/virtual height of the content (this.bodyNode)
+		// divided by the height of the scrollbar node.
+		// scrollbarNode.scrollTop === bodyNode.scrollTop / _scrollScaleFactor
+		// bodyNode.scrollTop === scrollbarNode.scrollTop * _scrollScaleFactor
 		_scrollScaleFactor: 1,
-		_scrollContentMaxHeight: 10000,
-		_virtualScrollbarMaxHeight: 10000,
 
 		buildRendering: function() {
 			this.inherited(arguments);
@@ -17,10 +37,11 @@ define([
 
 			this.scrollbarNode = domConstruct.create('div', {
 				className: 'dgrid-virtual-scrollbar'
-			}, this.bodyNode, 'before');
+			});
 
 			this.scrollbarNode.style.width = scrollbarWidth + 'px';
 			domConstruct.create('div', null, this.scrollbarNode);
+			this.bodyNode.parentNode.insertBefore(this.scrollbarNode, this.bodyNode);
 		},
 
 		postCreate: function() {
@@ -52,40 +73,6 @@ define([
 			});
 		},
 
-		refresh: function() {
-			var self = this;
-
-			return this.inherited(arguments).then(function(results) {
-				var contentHeight = self._calculateContentHeight();
-				var clampedHeight = Math.min(self._virtualScrollbarMaxHeight, contentHeight);
-
-				if (contentHeight > self._virtualScrollbarMaxHeight) {
-					self._scrollScaleFactor = contentHeight / clampedHeight;
-				}
-
-				self.scrollbarNode.firstChild.style.height = clampedHeight + 'px';
-
-				return results;
-			});
-		},
-
-		_calculateContentHeight: function() {
-			// grid._total: total number of currently rendered rows
-			// preload.count: number of rows the preload is holding space for
-			// preload.rowHeight: average height of sibling rows
-
-			var topPreload = this.preload;
-			var bottomPreload = topPreload.next;
-
-			return (topPreload.virtualHeight || topPreload.node.offsetHeight) +
-				(this._total * topPreload.rowHeight) +
-				(bottomPreload.virtualHeight || bottomPreload.node.offsetHeight);
-		},
-
-		_calculateScrollTop: function() {
-			return this.scrollbarNode.scrollTop * this._scrollScaleFactor;
-		},
-
 		getScrollPosition: function() {
 			return {
 				x: this.bodyNode.scrollLeft,
@@ -93,9 +80,23 @@ define([
 			};
 		},
 
+		refresh: function() {
+			var self = this;
+
+			return this.inherited(arguments).then(function(results) {
+				var contentHeight = self._calculateContentHeight();
+				var clampedHeight = Math.min(SCROLLBAR_MAX_HEIGHT, contentHeight);
+
+				self.scrollbarNode.firstChild.style.height = clampedHeight + 'px';
+				self._scrollScaleFactor = contentHeight / self.scrollbarNode.offsetHeight;
+
+				return results;
+			});
+		},
+
 		_adjustPreloadHeight: function(preload, noMax) {
 			var height = this._calculatePreloadHeight(preload, noMax);
-			var clampedHeight = Math.min(this._scrollContentMaxHeight - this.bodyNode.scrollHeight + preload.node.offsetHeight, height);
+			var clampedHeight = Math.min(height, preload.next ? TOP_PRELOAD_HEIGHT : BOTTOM_PRELOAD_HEIGHT);
 
 			if (clampedHeight === height) {
 				preload.clampedHeight = 0;
@@ -105,11 +106,50 @@ define([
 				preload.virtualHeight = height;
 			}
 
-			if (preload.next) {
-				preload.node.style.height = clampedHeight + 'px';
-			} else {
-				preload.node.style.height = '1000px';
+			preload.node.style.height = clampedHeight + 'px';
+		},
+
+		_calculateContentHeight: function() {
+			// grid._total: total number of currently rendered rows
+			// preload.count: number of rows the preload is holding space for
+			// preload.rowHeight: average height of sibling rows
+
+			var topPreload = this._getTopPreload();
+			var bottomPreload = topPreload.next;
+			var contentHeight = 0;
+
+			if (topPreload) {
+				contentHeight = (topPreload.virtualHeight || topPreload.node.offsetHeight) +
+					(this._total * topPreload.rowHeight);
+
+				if (bottomPreload) {
+					contentHeight += (bottomPreload.virtualHeight || bottomPreload.node.offsetHeight);
+				}
 			}
+
+			return contentHeight;
+		},
+
+		_calculateScrollTop: function() {
+			var topPreload = this._getTopPreload();
+			var extraHeight = 0;
+
+			if (topPreload.virtualHeight) {
+				extraHeight = topPreload.virtualHeight - topPreload.node.offsetHeight;
+			}
+
+			return this.scrollbarNode.scrollTop + extraHeight;
+
+		},
+
+		_getTopPreload: function() {
+			var topPreload = this.preload;
+
+			while (topPreload.previous) {
+				topPreload = topPreload.previous;
+			}
+
+			return topPreload;
 		}
 	});
 });
