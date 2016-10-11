@@ -401,7 +401,7 @@ define([
 		},
 
 		lastScrollTop: 0,
-		_processScroll: function (evt) {
+		_processScroll: function () {
 			// summary:x
 			//		Checks to make sure that everything in the viewable area has been
 			//		downloaded, and triggering a request for the necessary data when needed.
@@ -415,10 +415,9 @@ define([
 			}
 
 			var grid = this,
-				scrollNode = grid.bodyNode,
 				// grab current visible top from event if provided, otherwise from node
-				visibleTop = (evt && evt.scrollTop) || this.getScrollPosition().y,
-				visibleBottom = scrollNode.offsetHeight + visibleTop,
+				visibleTop = this.getScrollPosition().y,
+				visibleBottom = this._getContentHeight() + visibleTop,
 				priorPreload, preloadNode,
 				lastScrollTop = grid.lastScrollTop,
 				requestBuffer = grid.bufferRows * rowHeight,
@@ -445,7 +444,7 @@ define([
 				if (removeBelow) {
 					return preload.node.offsetTop - visibleBottom;
 				} else {
-					return visibleTop - (preload.node.offsetTop + preload.node.offsetHeight);
+					return visibleTop - (preload.node.offsetTop + grid._getPreloadHeight(preload));
 				}
 			}
 
@@ -599,7 +598,7 @@ define([
 					// the preload is below the line of sight
 					preload = traversePreload(preload, (preloadSearchNext = false));
 				}
-				else if (visibleTop - mungeAmount - searchBuffer > preloadTop + preloadNode.offsetHeight) {
+				else if (visibleTop - mungeAmount - searchBuffer > preloadTop + grid._getPreloadHeight(preload)) {
 					// the preload is above the line of sight
 					preload = traversePreload(preload, (preloadSearchNext = true));
 				}
@@ -879,6 +878,14 @@ define([
 				}
 				preload = preload.next;
 			}
+		},
+
+		_getContentHeight: function() {
+			return this.bodyNode.offsetHeight;
+		},
+
+		_getPreloadHeight: function(preload) {
+			return preload.node.offsetHeight;
 		},
 
 		_getRenderedCollection: function (/* preload */) {
