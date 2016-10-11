@@ -12,7 +12,7 @@ define([
 ], function(declare, domConstruct, on) {
 	var BOTTOM_PRELOAD_HEIGHT = 1000;
 	var TOP_PRELOAD_HEIGHT = 5000;
-	var SCROLLBAR_MAX_HEIGHT = 10000;
+	var SCROLLBAR_MAX_HEIGHT = 50000;
 
 	// for debugging
 	function assert(condition, message) {
@@ -22,8 +22,10 @@ define([
 	}
 
 	return declare(null, {
-		// This is the value of the total theoretical/virtual height of the content (this.bodyNode)
+		// This is the value of the total virtual height of the content (this.bodyNode)
 		// divided by the height of the scrollbar node.
+		// It should always be greater than or equal to 1, as the scrollbar height will be clamped at
+		// a maximum height, but will shrink to below that to match the bodyNode.
 		// scrollbarNode.scrollTop === bodyNode.scrollTop / _scrollScaleFactor
 		// bodyNode.scrollTop === scrollbarNode.scrollTop * _scrollScaleFactor
 		_scrollScaleFactor: 1,
@@ -31,9 +33,13 @@ define([
 		buildRendering: function() {
 			this.inherited(arguments);
 
-			// TODO: if 0, set to 7 (8?) for Safari (scrollbar is hidden by default)
 			// Add 1 pixel: some browsers (IE, FF) don't make the scrollbar active if it doesn't have visible content
 			var scrollbarWidth = this.bodyNode.offsetWidth - this.bodyNode.clientWidth + 1;
+
+			// If 0, assume scrollbar is hidden and set to 8 (Safari width is 7 or 8)
+			if (!scrollbarWidth) {
+				scrollbarWidth = 8;
+			}
 
 			this.scrollbarNode = domConstruct.create('div', {
 				className: 'dgrid-virtual-scrollbar'
@@ -47,6 +53,7 @@ define([
 		postCreate: function() {
 			this.inherited(arguments);
 
+			var self = this;
 			var bodyNode = this.bodyNode;
 			var scrollbarNode = this.scrollbarNode;
 			var bodyNodeScrollPauseCounter = 0;
@@ -58,8 +65,10 @@ define([
 					return;
 				}
 
+				var scrollPosition = self.getScrollPosition();
+
 				scrollbarScrollPauseCounter++;
-				scrollbarNode.scrollTop = event.target.scrollTop;
+				scrollbarNode.scrollTop = scrollPosition.y / self._scrollScaleFactor;
 			});
 
 			on(scrollbarNode, 'scroll', function(event) {
@@ -69,14 +78,14 @@ define([
 				}
 
 				bodyNodeScrollPauseCounter++;
-				bodyNode.scrollTop = event.target.scrollTop;
+				bodyNode.scrollTop = event.target.scrollTop * self._scrollScaleFactor;
 			});
 		},
 
 		getScrollPosition: function() {
 			return {
 				x: this.bodyNode.scrollLeft,
-				y: this._calculateScrollTop()
+				y: this._getScrollTop()
 			};
 		},
 
@@ -84,11 +93,24 @@ define([
 			var self = this;
 
 			return this.inherited(arguments).then(function(results) {
-				var contentHeight = self._calculateContentHeight();
+				var contentHeight = self._getContentHeight();
 				var clampedHeight = Math.min(SCROLLBAR_MAX_HEIGHT, contentHeight);
 
 				self.scrollbarNode.firstChild.style.height = clampedHeight + 'px';
-				self._scrollScaleFactor = contentHeight / self.scrollbarNode.offsetHeight;
+
+				if (clampedHeight < contentHeight) {
+					self._scrollScaleFactor = contentHeight / self.scrollbarNode.scrollHeight;
+				}
+				else {
+					self._scrollScaleFactor = 1;
+				}
+				console.group('refresh');
+				console.table([{
+					contentHeight: contentHeight,
+					clampedHeight: clampedHeight,
+					scrollScale: self._scrollScaleFactor }
+				]);
+				console.groupEnd();
 
 				return results;
 			});
@@ -102,36 +124,50 @@ define([
 				preload.clampedHeight = 0;
 				preload.virtualHeight = 0;
 			} else {
-				preload.clampedHeight = clampedHeight;
+				// preload.clampedHeight = clampedHeight;
 				preload.virtualHeight = height;
 			}
+			console.log('set ', preload.next ? 'top' : 'bottom', 'preload height', clampedHeight);
 
 			preload.node.style.height = clampedHeight + 'px';
 		},
 
-		_calculateContentHeight: function() {
+		/**
+		 * Calculate the total virtual height of grid.bodyNode.
+		 */
+		_getContentHeight: function() {
 			// grid._total: total number of currently rendered rows
 			// preload.count: number of rows the preload is holding space for
 			// preload.rowHeight: average height of sibling rows
 
-			var topPreload = this._getTopPreload();
+			var topPreload = this._getHeadPreload();
 			var bottomPreload = topPreload.next;
-			var contentHeight = 0;
+			var contentHeight = this.bodyNode.scrollHeight;
 
 			if (topPreload) {
-				contentHeight = (topPreload.virtualHeight || topPreload.node.offsetHeight) +
-					(this._total * topPreload.rowHeight);
+				if (topPreload.virtualHeight) {
+					contentHeight -= topPreload.node.offsetHeight;
+					contentHeight += topPreload.virtualHeight;
+				}
 
-				if (bottomPreload) {
-					contentHeight += (bottomPreload.virtualHeight || bottomPreload.node.offsetHeight);
+				if (bottomPreload && bottomPreload.virtualHeight) {
+					contentHeight -= bottomPreload.node.offsetHeight;
+					contentHeight += bottomPreload.virtualHeight;
 				}
 			}
 
 			return contentHeight;
 		},
 
-		_calculateScrollTop: function() {
-			var topPreload = this._getTopPreload();
+		_getPreloadHeight: function(preload) {
+			return preload.virtualHeight || preload.node.offsetHeight;
+		},
+
+		/**
+		 * Calculate top scroll position of grid.bodyNode within its total virtual height.
+		 */
+		_getScrollTop: function() {
+			var topPreload = this._getHeadPreload();
 			var extraHeight = 0;
 
 			if (topPreload.virtualHeight) {
@@ -139,17 +175,6 @@ define([
 			}
 
 			return this.scrollbarNode.scrollTop + extraHeight;
-
-		},
-
-		_getTopPreload: function() {
-			var topPreload = this.preload;
-
-			while (topPreload.previous) {
-				topPreload = topPreload.previous;
-			}
-
-			return topPreload;
 		}
 	});
 });
