@@ -417,7 +417,7 @@ define([
 			var grid = this,
 				// grab current visible top from event if provided, otherwise from node
 				visibleTop = this.getScrollPosition().y,
-				visibleBottom = this._getContentHeight() + visibleTop,
+				visibleBottom = this.bodyNode.offsetHeight + visibleTop,
 				priorPreload, preloadNode,
 				lastScrollTop = grid.lastScrollTop,
 				requestBuffer = grid.bufferRows * rowHeight,
@@ -878,10 +878,6 @@ define([
 				}
 				preload = preload.next;
 			}
-		},
-
-		_getContentHeight: function() {
-			return this.bodyNode.offsetHeight;
 		},
 
 		_getPreloadHeight: function(preload) {

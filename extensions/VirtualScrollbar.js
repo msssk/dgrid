@@ -61,24 +61,37 @@ define([
 
 			on(bodyNode, 'scroll', function(event) {
 				if (bodyNodeScrollPauseCounter) {
+					console.log('skip body scroll', bodyNodeScrollPauseCounter);
 					bodyNodeScrollPauseCounter--;
 					return;
 				}
 
 				var scrollPosition = self.getScrollPosition();
+				var newScrollTop = scrollPosition.y / self._scrollScaleFactor;
 
-				scrollbarScrollPauseCounter++;
-				scrollbarNode.scrollTop = scrollPosition.y / self._scrollScaleFactor;
+				if (scrollbarNode.scrollTop !== newScrollTop) {
+					scrollbarScrollPauseCounter++;
+					scrollbarNode.scrollTop = newScrollTop;
+				}
+				else {
+					console.log('no change');
+				}
 			});
 
 			on(scrollbarNode, 'scroll', function(event) {
 				if (scrollbarScrollPauseCounter) {
+					console.log('skip scrollbar scroll', scrollbarScrollPauseCounter);
 					scrollbarScrollPauseCounter--;
 					return;
 				}
 
-				bodyNodeScrollPauseCounter++;
-				bodyNode.scrollTop = event.target.scrollTop * self._scrollScaleFactor;
+				if (bodyNode.scrollTop !== event.target.scrollTop) {
+					bodyNodeScrollPauseCounter++;
+					bodyNode.scrollTop = event.target.scrollTop * self._scrollScaleFactor;
+				}
+				else {
+					console.log('sbn no change');
+				}
 			});
 		},
 
@@ -97,23 +110,28 @@ define([
 				var clampedHeight = Math.min(SCROLLBAR_MAX_HEIGHT, contentHeight);
 
 				self.scrollbarNode.firstChild.style.height = clampedHeight + 'px';
-
-				if (clampedHeight < contentHeight) {
-					self._scrollScaleFactor = contentHeight / self.scrollbarNode.scrollHeight;
-				}
-				else {
-					self._scrollScaleFactor = 1;
-				}
-				console.group('refresh');
-				console.table([{
-					contentHeight: contentHeight,
-					clampedHeight: clampedHeight,
-					scrollScale: self._scrollScaleFactor }
-				]);
-				console.groupEnd();
+				self._updateScrollScaleFactor(contentHeight);
 
 				return results;
 			});
+		},
+
+		_updateScrollScaleFactor: function(contentHeight) {
+			var scrollbarHeight = this.scrollbarNode.scrollHeight;
+
+			if (scrollbarHeight < contentHeight) {
+				this._scrollScaleFactor = contentHeight / scrollbarHeight;
+			}
+			else {
+				this._scrollScaleFactor = 1;
+			}
+			console.group('_updateScrollScaleFactor');
+			console.table([{
+				contentHeight: contentHeight,
+				scrollbarHeight: scrollbarHeight,
+				scrollScale: this._scrollScaleFactor
+			}]);
+			console.groupEnd();
 		},
 
 		_adjustPreloadHeight: function(preload, noMax) {
@@ -121,15 +139,14 @@ define([
 			var clampedHeight = Math.min(height, preload.next ? TOP_PRELOAD_HEIGHT : BOTTOM_PRELOAD_HEIGHT);
 
 			if (clampedHeight === height) {
-				preload.clampedHeight = 0;
 				preload.virtualHeight = 0;
 			} else {
-				// preload.clampedHeight = clampedHeight;
 				preload.virtualHeight = height;
 			}
-			console.log('set ', preload.next ? 'top' : 'bottom', 'preload height', clampedHeight);
+			console.log('set', preload.next ? 'top' : 'bottom', 'preload height', clampedHeight);
 
 			preload.node.style.height = clampedHeight + 'px';
+			this._updateScrollScaleFactor(this._getContentHeight());
 		},
 
 		/**
@@ -174,7 +191,7 @@ define([
 				extraHeight = topPreload.virtualHeight - topPreload.node.offsetHeight;
 			}
 
-			return this.scrollbarNode.scrollTop + extraHeight;
+			return this.bodyNode.scrollTop + extraHeight;
 		}
 	});
 });
