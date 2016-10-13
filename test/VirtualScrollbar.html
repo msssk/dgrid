@@ -20,6 +20,30 @@
 				padding: 6px;
 			}
 		</style>
+
+		<style>
+			body {
+				background-color: rgb(36, 36, 36);
+			}
+
+			.claro .dgrid {
+				color: rgb(44, 110, 173);
+			}
+
+			.claro .dgrid-preload {
+				background-color: rgb(44, 44, 44);
+			}
+
+			.claro .dgrid-row {
+				background-color: rgb(44, 44, 44);
+				background-image: none;
+				border-color: rgb(17, 19, 20);
+			}
+
+			.claro .dgrid-row:hover {
+				background-color: rgb(52, 45, 35);
+			}
+		</style>
 	</head>
 
 	<body class="claro">
@@ -38,7 +62,9 @@
 				var VSList = declare([OnDemandList, VirtualScrollbar]);
 				var store = new ImaginaryStore(5000);
 
+				//window.list = new OnDemandList({
 				window.list = new VSList({
+					debug: true,
 					collection: store,
 					renderRow: function(item) {
 						var row = document.createElement('div');

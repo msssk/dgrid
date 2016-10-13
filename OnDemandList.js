@@ -26,6 +26,13 @@ define([
 	}
 
 	return declare([List, _StoreMixin], {
+		log: function() {
+			var args = [String(Date.now()).substr(-5)];
+
+			args = args.concat(Array.prototype.slice.call(arguments));
+			console.log.apply(console, args);
+		},
+
 		// summary:
 		//		Extends List to include virtual scrolling functionality, querying a
 		//		dojo/store instance for the appropriate range when the user scrolls.
@@ -402,6 +409,7 @@ define([
 
 		lastScrollTop: 0,
 		_processScroll: function () {
+			this.log('processScroll');
 			// summary:x
 			//		Checks to make sure that everything in the viewable area has been
 			//		downloaded, and triggering a request for the necessary data when needed.
@@ -442,9 +450,9 @@ define([
 
 			function calculateDistanceOffset(preload, removeBelow) {
 				if (removeBelow) {
-					return preload.node.offsetTop - visibleBottom;
+					return grid._getContentChildOffsetTop(preload.node) - visibleBottom;
 				} else {
-					return visibleTop - (preload.node.offsetTop + grid._getPreloadHeight(preload));
+					return visibleTop - (grid._getContentChildOffsetTop(preload.node) + grid._getPreloadHeight(preload));
 				}
 			}
 
@@ -592,7 +600,7 @@ define([
 				priorPreload = grid.preload;
 				grid.preload = preload;
 				preloadNode = preload.node;
-				var preloadTop = preloadNode.offsetTop;
+				var preloadTop = this._getContentChildOffsetTop(preloadNode);
 
 				if (visibleBottom + mungeAmount + searchBuffer < preloadTop) {
 					// the preload is below the line of sight
@@ -688,7 +696,7 @@ define([
 						// Before adjusting the size of the preload node for the new rows yet to be loaded, remember
 						// the current position of beforeNode so the scroll position can be adjusted after
 						// the new rows are added.
-						keepScrollTo = beforeNode.offsetTop;
+						keepScrollTo = grid._getContentChildOffsetTop(beforeNode);
 					}
 					grid._adjustPreloadHeight(preload);
 
@@ -720,7 +728,9 @@ define([
 						(function (loadingNode, below, keepScrollTo) {
 							/* jshint maxlen: 122 */
 							var rangeResults = preload.query(options);
+							grid.log('render query results');
 							lastRows = grid.renderQueryResults(rangeResults, loadingNode, options).then(function (rows) {
+								grid.log('rendered query results');
 								var gridRows = grid._rows;
 								if (gridRows && !('queryLevel' in options) && rows.length) {
 									// Update relevant observed range for top-level items
@@ -754,7 +764,7 @@ define([
 										// Since we already had to query the scroll position,
 										// include x to avoid TouchScroll querying it again on its end.
 										x: pos.x,
-										y: pos.y + beforeNode.offsetTop - keepScrollTo,
+										y: pos.y + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo,
 										// Don't kill momentum mid-scroll (for TouchScroll only).
 										preserveMomentum: true
 									});
@@ -800,6 +810,23 @@ define([
 
 		_adjustPreloadHeight: function (preload, noMax) {
 			preload.node.style.height = this._calculatePreloadHeight(preload, noMax) + 'px';
+
+			/*var rows = Array.prototype.slice.call(this.bodyNode.querySelectorAll('.dgrid-row'));
+			var topPreload = this._getHeadPreload();
+			var info = {
+				_total: this._total,
+				renderedRows: rows.length,
+				topHeight: topPreload.node.offsetHeight,
+				topRows: topPreload.count,
+				rowsHeight: rows.reduce(function(p, c) {
+					return p + c.offsetHeight;
+				}, 0),
+				bottomHeight: topPreload.next.node.offsetHeight,
+				bottomRows: topPreload.next.count,
+				actualHeight: this.bodyNode.scrollHeight
+			};
+			info.totalHeight = info.topHeight + info.rowsHeight + info.bottomHeight;
+			console.table([info]);*/
 		},
 
 		_calculatePreloadHeight: function (preload, noMax) {
@@ -880,6 +907,18 @@ define([
 			}
 		},
 
+		/**
+		 * Get the 'node.offsetTop' value of a node that is a descendant of grid.bodyNode
+		 * This method is overridden in 'extensions/VirtualScrollbar'
+		 */
+		_getContentChildOffsetTop: function(node) {
+			return node.offsetTop;
+		},
+
+		/**
+		 * Get the height of a preload
+		 * This method is overridden in 'extensions/VirtualScrollbar'
+		 */
 		_getPreloadHeight: function(preload) {
 			return preload.node.offsetHeight;
 		},

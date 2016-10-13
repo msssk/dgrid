@@ -48,6 +48,10 @@ define([
 			this.scrollbarNode.style.width = scrollbarWidth + 'px';
 			domConstruct.create('div', null, this.scrollbarNode);
 			this.bodyNode.parentNode.insertBefore(this.scrollbarNode, this.bodyNode);
+
+			if (this.debug) {
+				this.bodyNode.style.width = (this.bodyNode.offsetWidth - scrollbarWidth) + 'px';
+			}
 		},
 
 		postCreate: function() {
@@ -57,11 +61,23 @@ define([
 			var bodyNode = this.bodyNode;
 			var scrollbarNode = this.scrollbarNode;
 			var bodyNodeScrollPauseCounter = 0;
+			var bodyNodeScrollResetHandle;
 			var scrollbarScrollPauseCounter = 0;
+			var scrollbarScrollResetHandle;
+
+			function bodyNodeScrollPauseReset() {
+//				self.log('bodyNodeScrollPauseReset', bodyNodeScrollPauseCounter);
+				bodyNodeScrollPauseCounter = 0;
+			}
+
+			function scrollbarScrollPauseReset() {
+//				self.log('scrollbarScrollPauseReset', scrollbarScrollPauseCounter);
+				scrollbarScrollPauseCounter = 0;
+			}
 
 			on(bodyNode, 'scroll', function(event) {
 				if (bodyNodeScrollPauseCounter) {
-					console.log('skip body scroll', bodyNodeScrollPauseCounter);
+//					self.log('skip body scroll', bodyNodeScrollPauseCounter);
 					bodyNodeScrollPauseCounter--;
 					return;
 				}
@@ -69,29 +85,29 @@ define([
 				var scrollPosition = self.getScrollPosition();
 				var newScrollTop = scrollPosition.y / self._scrollScaleFactor;
 
-				if (scrollbarNode.scrollTop !== newScrollTop) {
-					scrollbarScrollPauseCounter++;
-					scrollbarNode.scrollTop = newScrollTop;
-				}
-				else {
-					console.log('no change');
-				}
+				clearTimeout(scrollbarScrollResetHandle);
+
+				assert(scrollbarNode.scrollTop !== newScrollTop, 'Scrollbar scroll top did not change');
+
+				scrollbarScrollPauseCounter++;
+				scrollbarNode.scrollTop = newScrollTop;
+				scrollbarScrollResetHandle = setTimeout(scrollbarScrollPauseReset, 200);
 			});
 
 			on(scrollbarNode, 'scroll', function(event) {
 				if (scrollbarScrollPauseCounter) {
-					console.log('skip scrollbar scroll', scrollbarScrollPauseCounter);
+//					self.log('skip scrollbar scroll', scrollbarScrollPauseCounter);
 					scrollbarScrollPauseCounter--;
 					return;
 				}
 
-				if (bodyNode.scrollTop !== event.target.scrollTop) {
-					bodyNodeScrollPauseCounter++;
-					bodyNode.scrollTop = event.target.scrollTop * self._scrollScaleFactor;
-				}
-				else {
-					console.log('sbn no change');
-				}
+				clearTimeout(bodyNodeScrollResetHandle);
+
+				assert(bodyNode.scrollTop !== event.target.scrollTop, 'Content scroll top did not change');
+
+				bodyNodeScrollPauseCounter++;
+				bodyNode.scrollTop = event.target.scrollTop * self._scrollScaleFactor;
+				bodyNodeScrollResetHandle = setTimeout(bodyNodeScrollPauseReset, 200);
 			});
 		},
 
@@ -119,6 +135,10 @@ define([
 		_updateScrollScaleFactor: function(contentHeight) {
 			var scrollbarHeight = this.scrollbarNode.scrollHeight;
 
+			if (contentHeight === undefined) {
+				contentHeight = this._getContentHeight();
+			}
+
 			if (scrollbarHeight < contentHeight) {
 				this._scrollScaleFactor = contentHeight / scrollbarHeight;
 			}
@@ -139,14 +159,32 @@ define([
 			var clampedHeight = Math.min(height, preload.next ? TOP_PRELOAD_HEIGHT : BOTTOM_PRELOAD_HEIGHT);
 
 			if (clampedHeight === height) {
+				preload.extraHeight = 0;
 				preload.virtualHeight = 0;
 			} else {
+				preload.extraHeight = height - clampedHeight;
 				preload.virtualHeight = height;
 			}
-			console.log('set', preload.next ? 'top' : 'bottom', 'preload height', clampedHeight);
 
 			preload.node.style.height = clampedHeight + 'px';
-			this._updateScrollScaleFactor(this._getContentHeight());
+			assert(Math.abs(clampedHeight - preload.node.offsetHeight) < 1,
+				'Preload height mismatch ' + clampedHeight + ':' + preload.node.offsetHeight
+			);
+			this._updateScrollScaleFactor();
+		},
+
+		_getContentChildOffsetTop: function(node) {
+			var offset = node.offsetTop;
+			var topPreload;
+
+			// If offset is zero, then it's the top node and we don't need to add the preload height
+			if (offset) {
+				topPreload = this._getHeadPreload();
+				assert(topPreload.extraHeight !== undefined, 'Top preload extraHeight is undefined');
+				offset += topPreload.extraHeight;
+			}
+
+			return offset;
 		},
 
 		/**
@@ -162,14 +200,10 @@ define([
 			var contentHeight = this.bodyNode.scrollHeight;
 
 			if (topPreload) {
-				if (topPreload.virtualHeight) {
-					contentHeight -= topPreload.node.offsetHeight;
-					contentHeight += topPreload.virtualHeight;
-				}
+				contentHeight += topPreload.extraHeight === undefined ? 0 : topPreload.extraHeight;
 
-				if (bottomPreload && bottomPreload.virtualHeight) {
-					contentHeight -= bottomPreload.node.offsetHeight;
-					contentHeight += bottomPreload.virtualHeight;
+				if (bottomPreload && bottomPreload.extraHeight !== undefined) {
+					contentHeight += bottomPreload.extraHeight;
 				}
 			}
 
@@ -185,13 +219,8 @@ define([
 		 */
 		_getScrollTop: function() {
 			var topPreload = this._getHeadPreload();
-			var extraHeight = 0;
 
-			if (topPreload.virtualHeight) {
-				extraHeight = topPreload.virtualHeight - topPreload.node.offsetHeight;
-			}
-
-			return this.bodyNode.scrollTop + extraHeight;
+			return this.bodyNode.scrollTop + topPreload.extraHeight;
 		}
 	});
 });
