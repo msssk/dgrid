@@ -15,17 +15,17 @@ define([
 	var SCROLLBAR_MAX_HEIGHT = 50000;
 
 	// for debugging
-	function assert(condition, message) {
+	function assert(condition) {
 		if (!condition) {
-			console.warn(message);
+			console.warn.apply(console, Array.prototype.slice.call(arguments, 1));
 		}
 	}
 
 	return declare(null, {
-		// This is the value of the total virtual height of the content (this.bodyNode)
+		// This is the value of the total virtual height of the content (grid.contentNode)
 		// divided by the height of the scrollbar node.
 		// It should always be greater than or equal to 1, as the scrollbar height will be clamped at
-		// a maximum height, but will shrink to below that to match the bodyNode.
+		// a maximum height, but will shrink to below that to match the contentNode.
 		// scrollbarNode.scrollTop === bodyNode.scrollTop / _scrollScaleFactor
 		// bodyNode.scrollTop === scrollbarNode.scrollTop * _scrollScaleFactor
 		_scrollScaleFactor: 1,
@@ -50,11 +50,16 @@ define([
 			this.bodyNode.parentNode.insertBefore(this.scrollbarNode, this.bodyNode);
 
 			if (this.debug) {
+				// make both scrollbars visible
 				this.bodyNode.style.width = (this.bodyNode.offsetWidth - scrollbarWidth) + 'px';
 			}
 		},
 
 		postCreate: function() {
+			if (this.pagingMethod === 'debounce' && this.pagingDelay < 100) {
+				this.pagingDelay = 100;
+			}
+
 			this.inherited(arguments);
 
 			var self = this;
@@ -75,38 +80,79 @@ define([
 				scrollbarScrollPauseCounter = 0;
 			}
 
-			on(bodyNode, 'scroll', function(event) {
+			on(bodyNode, 'scroll', function() {
+				// console.table([{
+				// 	offsetHeight: bodyNode.offsetHeight,
+				// 	scrollTop: bodyNode.scrollTop,
+				// 	scrollBottom: bodyNode.offsetHeight + bodyNode.scrollTop,
+				// 	scrollHeight: bodyNode.scrollHeight
+				// }]);
 				if (bodyNodeScrollPauseCounter) {
 //					self.log('skip body scroll', bodyNodeScrollPauseCounter);
 					bodyNodeScrollPauseCounter--;
 					return;
 				}
 
-				var scrollPosition = self.getScrollPosition();
-				var newScrollTop = scrollPosition.y / self._scrollScaleFactor;
+				// scrollTop is sometimes not a whole number, so round it
+				var newScrollTop = Math.round(bodyNode.scrollTop);
 
 				clearTimeout(scrollbarScrollResetHandle);
 
-				assert(scrollbarNode.scrollTop !== newScrollTop, 'Scrollbar scroll top did not change');
+				// Besides wasting time, unnecessary calculations can introduce rounding errors.
+				// If the bodyNode is at the top (scrollTop === 0), don't do any calculation, just
+				// set the scrollbar node to the top as well.
+				if (newScrollTop) {
+					assert(newScrollTop + bodyNode.offsetHeight <= bodyNode.scrollHeight,
+						'bodyNode scrollTop + offsetHeight exceeds scrollHeight',
+						newScrollTop, bodyNode.offsetHeight, bodyNode.scrollHeight
+					);
+					// If the bodyNode is at the bottom (scrollTop + offsetHeight === scrollHeight),
+					// don't do any calculation, just set the scrollbar node to its bottom as well.
+					if (newScrollTop + bodyNode.offsetHeight === bodyNode.scrollHeight) {
+						newScrollTop = scrollbarNode.scrollHeight - scrollbarNode.offsetHeight;
+					}
+					else {
+						newScrollTop = Math.round(self._getScrollTop() / self._scrollScaleFactor);
+					}
+				}
 
-				scrollbarScrollPauseCounter++;
-				scrollbarNode.scrollTop = newScrollTop;
-				scrollbarScrollResetHandle = setTimeout(scrollbarScrollPauseReset, 200);
+				// Because of the scaling factor, a small scroll in the content may not cause the
+				// scrollbarNode scroll handle to move.
+				if (scrollbarNode.scrollTop !== newScrollTop) {
+					scrollbarScrollPauseCounter++;
+					scrollbarNode.scrollTop = newScrollTop;
+					scrollbarScrollResetHandle = setTimeout(scrollbarScrollPauseReset, 200);
+				}
+
 			});
 
-			on(scrollbarNode, 'scroll', function(event) {
+			on(scrollbarNode, 'scroll', function() {
 				if (scrollbarScrollPauseCounter) {
 //					self.log('skip scrollbar scroll', scrollbarScrollPauseCounter);
 					scrollbarScrollPauseCounter--;
 					return;
 				}
 
+				// scrollTop is sometimes not a whole number, so round it
+				var newScrollTop = Math.round(scrollbarNode.scrollTop);
+
 				clearTimeout(bodyNodeScrollResetHandle);
 
-				assert(bodyNode.scrollTop !== event.target.scrollTop, 'Content scroll top did not change');
+				if (newScrollTop) {
+					assert(newScrollTop + scrollbarNode.offsetHeight <= scrollbarNode.scrollHeight,
+						'scrollbarNode scrollTop + offsetHeight exceeds scrollHeight'
+					);
+					if (newScrollTop + scrollbarNode.offsetHeight === scrollbarNode.scrollHeight) {
+						newScrollTop = bodyNode.scrollHeight - bodyNode.offsetHeight;
+					}
+					else {
+						newScrollTop = Math.round(newScrollTop * self._scrollScaleFactor);
+					}
+				}
+				assert(bodyNode.scrollTop !== newScrollTop, 'Content scroll top did not change');
 
 				bodyNodeScrollPauseCounter++;
-				bodyNode.scrollTop = event.target.scrollTop * self._scrollScaleFactor;
+				self.scrollTo({ y: newScrollTop });
 				bodyNodeScrollResetHandle = setTimeout(bodyNodeScrollPauseReset, 200);
 			});
 		},
@@ -132,6 +178,30 @@ define([
 			});
 		},
 
+		// This method should always receive a y-value appropriate for the grid's full (virtual) height.
+		scrollTo: function(options) {
+			var topPreload;
+			var newScrollTop;
+
+			if (options.x !== undefined) {
+				this.bodyNode.scrollLeft = options.x;
+			}
+
+			if (options.y !== undefined) {
+				newScrollTop = options.y;
+				topPreload = this._getHeadPreload();
+
+				if (topPreload) {
+					assert(topPreload.extraHeight !== undefined, 'topPreload.extraHeight is undefined');
+					if (topPreload.extraHeight !== undefined) {
+						newScrollTop -= topPreload.extraHeight;
+					}
+				}
+
+				this.bodyNode.scrollTop = newScrollTop;
+			}
+		},
+
 		_updateScrollScaleFactor: function(contentHeight) {
 			var scrollbarHeight = this.scrollbarNode.scrollHeight;
 
@@ -145,17 +215,10 @@ define([
 			else {
 				this._scrollScaleFactor = 1;
 			}
-			console.group('_updateScrollScaleFactor');
-			console.table([{
-				contentHeight: contentHeight,
-				scrollbarHeight: scrollbarHeight,
-				scrollScale: this._scrollScaleFactor
-			}]);
-			console.groupEnd();
 		},
 
 		_adjustPreloadHeight: function(preload, noMax) {
-			var height = this._calculatePreloadHeight(preload, noMax);
+			var height = Math.round(this._calculatePreloadHeight(preload, noMax));
 			var clampedHeight = Math.min(height, preload.next ? TOP_PRELOAD_HEIGHT : BOTTOM_PRELOAD_HEIGHT);
 
 			if (clampedHeight === height) {
@@ -220,7 +283,7 @@ define([
 		_getScrollTop: function() {
 			var topPreload = this._getHeadPreload();
 
-			return this.bodyNode.scrollTop + topPreload.extraHeight;
+			return Math.round(this.bodyNode.scrollTop) + topPreload.extraHeight;
 		}
 	});
 });

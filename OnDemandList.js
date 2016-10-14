@@ -27,7 +27,7 @@ define([
 
 	return declare([List, _StoreMixin], {
 		log: function() {
-			var args = [String(Date.now()).substr(-5)];
+			var args = [String(Date.now()).substr(-5) + ':'];
 
 			args = args.concat(Array.prototype.slice.call(arguments));
 			console.log.apply(console, args);
@@ -409,7 +409,7 @@ define([
 
 		lastScrollTop: 0,
 		_processScroll: function () {
-			this.log('processScroll');
+			this.log('processScroll', arguments.length ? 'event' : 'autoload');
 			// summary:x
 			//		Checks to make sure that everything in the viewable area has been
 			//		downloaded, and triggering a request for the necessary data when needed.
@@ -727,10 +727,12 @@ define([
 						// (which can happen if we need to render on both sides of an island of already-rendered rows)
 						(function (loadingNode, below, keepScrollTo) {
 							/* jshint maxlen: 122 */
+							var preQueryTick = Date.now();
 							var rangeResults = preload.query(options);
-							grid.log('render query results');
 							lastRows = grid.renderQueryResults(rangeResults, loadingNode, options).then(function (rows) {
-								grid.log('rendered query results');
+								if ((Date.now() - preQueryTick) > 35) {
+									console.warn('Query and render took', Date.now() - preQueryTick, 'ms');
+								}
 								var gridRows = grid._rows;
 								if (gridRows && !('queryLevel' in options) && rows.length) {
 									// Update relevant observed range for top-level items

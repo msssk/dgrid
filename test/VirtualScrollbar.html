@@ -30,12 +30,13 @@
 				color: rgb(44, 110, 173);
 			}
 
-			.claro .dgrid-preload {
+			.claro .dgrid,
+			.claro .dgrid-preload,
+			.claro .dgrid-row {
 				background-color: rgb(44, 44, 44);
 			}
 
 			.claro .dgrid-row {
-				background-color: rgb(44, 44, 44);
 				background-image: none;
 				border-color: rgb(17, 19, 20);
 			}
@@ -60,7 +61,7 @@
 				'dgrid/test/data/ImaginaryStore'
 			], function(declare, dom, OnDemandList, VirtualScrollbar, ImaginaryStore) {
 				var VSList = declare([OnDemandList, VirtualScrollbar]);
-				var store = new ImaginaryStore(5000);
+				var store = new ImaginaryStore(10000);
 
 				//window.list = new OnDemandList({
 				window.list = new VSList({
