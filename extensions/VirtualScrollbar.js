@@ -281,9 +281,19 @@ define([
 		 * Calculate top scroll position of grid.bodyNode within its total virtual height.
 		 */
 		_getScrollTop: function() {
+			var scrollTop = Math.round(this.bodyNode.scrollTop);
 			var topPreload = this._getHeadPreload();
+			var scrollbarScrollPercent;
 
-			return Math.round(this.bodyNode.scrollTop) + topPreload.extraHeight;
+			if (topPreload.extraHeight) {
+				scrollTop += topPreload.extraHeight;
+			}
+			else {
+				scrollbarScrollPercent = this.scrollbarNode.scrollTop / this.scrollbarNode.scrollHeight;
+				scrollTop = Math.round(this._getContentHeight() * scrollbarScrollPercent);
+			}
+
+			return scrollTop;
 		}
 	});
 });
