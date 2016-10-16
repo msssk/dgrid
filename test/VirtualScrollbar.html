@@ -66,6 +66,8 @@
 				//window.list = new OnDemandList({
 				window.list = new VSList({
 					debug: true,
+					pagingMethod: 'debounce',
+					pagingDelay: 250,
 					collection: store,
 					renderRow: function(item) {
 						var row = document.createElement('div');

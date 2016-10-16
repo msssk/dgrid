@@ -100,11 +100,17 @@ define([
 		// 		List of DOM nodes queued for deletion.
 		_deleteQueue: [],
 
+		buildRendering: function() {
+			this.inherited(arguments);
+
+			this.scrollNode = this.bodyNode;
+		},
+
 		postCreate: function () {
 			this.inherited(arguments);
 			var self = this;
 			// check visibility on scroll events
-			on(this.bodyNode, 'scroll',
+			on(this.scrollNode, 'scroll',
 				miscUtil[this.pagingMethod](function (event) {
 					self._processScroll(event);
 				}, null, this.pagingDelay)
@@ -410,6 +416,20 @@ define([
 		lastScrollTop: 0,
 		_processScroll: function () {
 			this.log('processScroll', arguments.length ? 'event' : 'autoload');
+			if (this._getHeadPreload()) {
+				var info = {
+					topPreload: this._getHeadPreload().node.offsetHeight,
+					height: this.contentNode.scrollHeight,
+					rowsHeight: Array.prototype.slice.call(this.scrollNode.querySelectorAll('.dgrid-row')).reduce(function(a, b) {
+						return a + b.offsetHeight;
+					}, 0),
+					bottomPreload: this._getHeadPreload().next.node.offsetHeight
+				};
+				info.rowHeight = this._getHeadPreload().rowHeight;
+				info.rowsHeight2 = Array.prototype.slice.call(this.scrollNode.querySelectorAll('.dgrid-row')).length * this._getHeadPreload().rowHeight;
+				info.totalHeight = info.topPreload + info.rowsHeight2 + info.bottomPreload;
+				console.table([info]);
+			}
 			// summary:x
 			//		Checks to make sure that everything in the viewable area has been
 			//		downloaded, and triggering a request for the necessary data when needed.
@@ -425,7 +445,7 @@ define([
 			var grid = this,
 				// grab current visible top from event if provided, otherwise from node
 				visibleTop = this.getScrollPosition().y,
-				visibleBottom = this.bodyNode.offsetHeight + visibleTop,
+				visibleBottom = this.scrollNode.offsetHeight + visibleTop,
 				priorPreload, preloadNode,
 				lastScrollTop = grid.lastScrollTop,
 				requestBuffer = grid.bufferRows * rowHeight,
@@ -813,7 +833,7 @@ define([
 		_adjustPreloadHeight: function (preload, noMax) {
 			preload.node.style.height = this._calculatePreloadHeight(preload, noMax) + 'px';
 
-			/*var rows = Array.prototype.slice.call(this.bodyNode.querySelectorAll('.dgrid-row'));
+			var rows = Array.prototype.slice.call(this.bodyNode.querySelectorAll('.dgrid-row'));
 			var topPreload = this._getHeadPreload();
 			var info = {
 				_total: this._total,
@@ -828,7 +848,7 @@ define([
 				actualHeight: this.bodyNode.scrollHeight
 			};
 			info.totalHeight = info.topHeight + info.rowsHeight + info.bottomHeight;
-			console.table([info]);*/
+			console.table([info]);
 		},
 
 		_calculatePreloadHeight: function (preload, noMax) {
@@ -910,7 +930,7 @@ define([
 		},
 
 		/**
-		 * Get the 'node.offsetTop' value of a node that is a descendant of grid.bodyNode
+		 * Get the 'node.offsetTop' value of a node that is a descendant of grid.contentNode
 		 * This method is overridden in 'extensions/VirtualScrollbar'
 		 */
 		_getContentChildOffsetTop: function(node) {

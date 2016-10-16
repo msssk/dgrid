@@ -10,8 +10,8 @@ define([
 	'dojo/dom-construct',
 	'dojo/on'
 ], function(declare, domConstruct, on) {
-	var BOTTOM_PRELOAD_HEIGHT = 1000;
-	var TOP_PRELOAD_HEIGHT = 5000;
+	var BOTTOM_PRELOAD_HEIGHT = 2000;
+	var TOP_PRELOAD_HEIGHT = 2000;
 	var SCROLLBAR_MAX_HEIGHT = 50000;
 
 	// for debugging
@@ -48,6 +48,7 @@ define([
 			this.scrollbarNode.style.width = scrollbarWidth + 'px';
 			domConstruct.create('div', null, this.scrollbarNode);
 			this.bodyNode.parentNode.insertBefore(this.scrollbarNode, this.bodyNode);
+			this.scrollNode = this.scrollbarNode;
 
 			if (this.debug) {
 				// make both scrollbars visible
@@ -70,25 +71,20 @@ define([
 			var scrollbarScrollPauseCounter = 0;
 			var scrollbarScrollResetHandle;
 
-			function bodyNodeScrollPauseReset() {
-//				self.log('bodyNodeScrollPauseReset', bodyNodeScrollPauseCounter);
+			// Sometimes the pause counter gets to a high value, which seemingly should not happen.
+			// Reset it if there is no scroll activity for a bit.
+			// TODO: why does the counter get high? For every manipulation of 'scrollTop', the handler
+			// *should* be called and decrement the pause counter.
+			function resetBodyNodeScrollPause() {
 				bodyNodeScrollPauseCounter = 0;
 			}
 
-			function scrollbarScrollPauseReset() {
-//				self.log('scrollbarScrollPauseReset', scrollbarScrollPauseCounter);
+			function resetScrollbarScrollPause() {
 				scrollbarScrollPauseCounter = 0;
 			}
 
 			on(bodyNode, 'scroll', function() {
-				// console.table([{
-				// 	offsetHeight: bodyNode.offsetHeight,
-				// 	scrollTop: bodyNode.scrollTop,
-				// 	scrollBottom: bodyNode.offsetHeight + bodyNode.scrollTop,
-				// 	scrollHeight: bodyNode.scrollHeight
-				// }]);
 				if (bodyNodeScrollPauseCounter) {
-//					self.log('skip body scroll', bodyNodeScrollPauseCounter);
 					bodyNodeScrollPauseCounter--;
 					return;
 				}
@@ -112,7 +108,7 @@ define([
 						newScrollTop = scrollbarNode.scrollHeight - scrollbarNode.offsetHeight;
 					}
 					else {
-						newScrollTop = Math.round(self._getScrollTop() / self._scrollScaleFactor);
+						newScrollTop = Math.round(self._getBodyScrollTop() / self._scrollScaleFactor);
 					}
 				}
 
@@ -121,14 +117,13 @@ define([
 				if (scrollbarNode.scrollTop !== newScrollTop) {
 					scrollbarScrollPauseCounter++;
 					scrollbarNode.scrollTop = newScrollTop;
-					scrollbarScrollResetHandle = setTimeout(scrollbarScrollPauseReset, 200);
+					scrollbarScrollResetHandle = setTimeout(resetScrollbarScrollPause, 200);
 				}
 
 			});
 
 			on(scrollbarNode, 'scroll', function() {
 				if (scrollbarScrollPauseCounter) {
-//					self.log('skip scrollbar scroll', scrollbarScrollPauseCounter);
 					scrollbarScrollPauseCounter--;
 					return;
 				}
@@ -153,13 +148,13 @@ define([
 
 				bodyNodeScrollPauseCounter++;
 				self.scrollTo({ y: newScrollTop });
-				bodyNodeScrollResetHandle = setTimeout(bodyNodeScrollPauseReset, 200);
+				bodyNodeScrollResetHandle = setTimeout(resetBodyNodeScrollPause, 200);
 			});
 		},
 
 		getScrollPosition: function() {
 			return {
-				x: this.bodyNode.scrollLeft,
+				x: this.scrollNode.scrollLeft,
 				y: this._getScrollTop()
 			};
 		},
@@ -236,6 +231,26 @@ define([
 			this._updateScrollScaleFactor();
 		},
 
+		/*
+		 There is a problem with using the offsetHeight property of nodes to calculate height: it is not reliable.
+		 At least in Chrome on a scaled display, the real height (as displayed in the UI when the element is
+		 hovered in the dev tools) is not an integer. The value of offsetHeight is a rounded integer.
+		 In order to get the actual average height, a better approach is to check the total height of all rows
+		 and divide by the row count.
+		 */
+		_calcAverageRowHeight: function(rowElements) {
+			if (!rowElements || !rowElements.length) {
+				return 0;
+			}
+
+			var topNode = rowElements[0];
+			// There should be a preload node below the last row
+			var bottomNode = rowElements[rowElements.length - 1].nextSibling;
+			var totalHeight = bottomNode.offsetTop - topNode.offsetTop;
+
+			return totalHeight / rowElements.length;
+		},
+
 		_getContentChildOffsetTop: function(node) {
 			var offset = node.offsetTop;
 			var topPreload;
@@ -277,10 +292,14 @@ define([
 			return preload.virtualHeight || preload.node.offsetHeight;
 		},
 
+		_getScrollTop: function() {
+			return this.scrollNode.scrollTop * this._scrollScaleFactor;
+		},
+
 		/**
 		 * Calculate top scroll position of grid.bodyNode within its total virtual height.
 		 */
-		_getScrollTop: function() {
+		_getBodyScrollTop: function() {
 			var scrollTop = Math.round(this.bodyNode.scrollTop);
 			var topPreload = this._getHeadPreload();
 			var scrollbarScrollPercent;
