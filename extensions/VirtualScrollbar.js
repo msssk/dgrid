@@ -29,6 +29,9 @@ define([
 	}
 
 	return declare(null, {
+		// The last node to emit a scroll event - should be either bodyNode or scrollbarNode
+		_lastScrolledNode: null,
+
 		// This is the value of the total virtual height of the content (grid.contentNode)
 		// divided by the height of the scrollbar node.
 		// It should always be greater than or equal to 1, as the scrollbar height will be clamped at
@@ -62,11 +65,6 @@ define([
 		},
 
 		postCreate: function() {
-			// TODO: should this be enforced?
-			if (this.pagingMethod === 'debounce' && this.pagingDelay < 100) {
-				this.pagingDelay = 100;
-			}
-
 			this.inherited(arguments);
 
 			var self = this;
@@ -119,7 +117,7 @@ define([
 					}
 				}
 
-				if (bodyNode.scrollTop !== newScrollTop) {
+				if (self._getScrollTopFromBody() !== newScrollTop) {
 					bodyNodeScrollPauseCounter++;
 					self.scrollTo({ y: newScrollTop });
 					bodyNodeScrollResetHandle = setTimeout(resetBodyNodeScrollPause, 200);
@@ -138,6 +136,7 @@ define([
 				var bottomPreload;
 				var doProcessScroll = false;
 
+				self._lastScrolledNode = bodyNode;
 				clearTimeout(scrollbarScrollResetHandle);
 
 				// Scroll direction is down
@@ -145,6 +144,7 @@ define([
 					bottomPreload = topPreload.next;
 
 					if (newScrollTop + (2 * bodyNode.offsetHeight) > bottomPreload.node.offsetTop) {
+						// bottom preload node is close to being visible
 						doProcessScroll = true;
 					}
 				}
@@ -152,6 +152,7 @@ define([
 				else {
 					/* jshint maxlen:122 */
 					if (newScrollTop < topPreload.node.offsetTop + topPreload.node.offsetHeight + bodyNode.offsetHeight) {
+						// top preload node is close to being visible
 						doProcessScroll = true;
 					}
 				}
@@ -171,7 +172,7 @@ define([
 					if (newScrollTop + bodyNode.offsetHeight === bodyNode.scrollHeight) {
 						bottomPreload = bottomPreload || topPreload.next;
 
-						// If the bottomPreload has no extra height, then we've really scrolled to the bottom
+						// If the bottomPreload has no extra height, then the scroll position is at the very bottom
 						if (bottomPreload.extraHeight === 0) {
 							newScrollTop = scrollbarNode.scrollHeight - scrollbarNode.offsetHeight;
 						}
@@ -194,7 +195,7 @@ define([
 				// If the scrollbarNode's scroll handle did not move, but the scrolling within the body requires
 				// loading new rows, trigger grid._processScroll
 				else if (doProcessScroll) {
-					console.log('bodyNode.scroll -> _processScroll');
+					self.log('bodyNode.scroll -> _processScroll');
 					// Provide a parameter to _processScroll so that _processScroll knows it has not been called
 					// recursively
 					self._processScroll({ target: bodyNode });
@@ -207,6 +208,7 @@ define([
 					return;
 				}
 
+				self._lastScrolledNode = scrollbarNode;
 				self._updateBodyScrollTop();
 			});
 		},
@@ -361,33 +363,60 @@ define([
 		 */
 		_getScrollTop: function() {
 			var scrollTop;
-			var topPreload;
-			var bottomPreload;
 
-			// If the scrollbarNode scroller is at the bottom, the scrollTop can be more precisely calculated
-			if (this.scrollbarNode.scrollTop &&
-				this.scrollbarNode.scrollTop + this.scrollbarNode.offsetHeight === this.scrollbarNode.scrollHeight) {
-				scrollTop = this._getContentHeight() - this.bodyNode.offsetHeight;
+			if (this._lastScrolledNode === null || this._lastScrolledNode === this.bodyNode) {
+				scrollTop = this._getScrollTopFromBody();
 			}
 			else {
-				topPreload = this._getHeadPreload();
-				bottomPreload = topPreload.next;
-
-				// If the bottom preload has been scrolled into sight, we can't accurately calculate the scrollTop
-				// simply by adding topPreload.extraHeight - we have to fall back to scaling from the scrollbarNode
-				if (bottomPreload.node.offsetTop < this.bodyNode.scrollTop + this.bodyNode.offsetHeight) {
-					scrollTop = this.scrollbarNode.scrollTop * this._scrollScaleFactor;
-				}
-				else {
-					scrollTop = Math.round(this.bodyNode.scrollTop);
-
-					if (topPreload.extraHeight) {
-						scrollTop += topPreload.extraHeight;
-					}
-				}
+				scrollTop = this._getScrollTopFromScrollbar();
 			}
 
 			// TODO: round? floor? ceil?
+			return scrollTop;
+		},
+
+		// Calculate the top scroll position within the full virtual height based on the bodyNode's scroll position
+		// This should give the most accurate value. Small scroll changes in bodyNode might not result in any change
+		// in scrollbarNode.scrollTop.
+		// It should be used when the most recent scroll activity was within the bodyNode.
+		_getScrollTopFromBody: function() {
+			var scrollTop;
+			var topPreload = this._getHeadPreload();
+			var bottomPreload = topPreload.next;
+
+			// If the bottom preload has been scrolled into sight, we can't accurately calculate the scrollTop
+			// simply by adding topPreload.extraHeight - we have to fall back to scaling from the scrollbarNode
+			if (bottomPreload.node.offsetTop < this.bodyNode.scrollTop + this.bodyNode.offsetHeight) {
+				scrollTop = this._getScrollTopFromScrollbar();
+			}
+			else {
+				scrollTop = Math.round(this.bodyNode.scrollTop);
+
+				if (topPreload.extraHeight) {
+					scrollTop += topPreload.extraHeight;
+				}
+			}
+
+			return scrollTop;
+		},
+
+		// Calculate the top scroll position within the full virtual height based on the scrollbarNode's scroll position
+		// It should be used when the scrollbarNode has been scrolled, but the bodyNode's scroll has not been synced, or
+		// the grid content has not been updated (prune/render rows, adjust preload heights)
+		_getScrollTopFromScrollbar: function() {
+			var scrollTop = this.scrollbarNode.scrollTop;
+
+			if (scrollTop) {
+				// If the scrollbarNode scroller is at the bottom, calculate the precise scrollTop value that puts
+				// the bodyNode at the very bottom
+				if (scrollTop + this.scrollbarNode.offsetHeight === this.scrollbarNode.scrollHeight) {
+					scrollTop = this._getContentHeight() - this.bodyNode.offsetHeight;
+				}
+				else {
+					scrollTop *= this._scrollScaleFactor;
+				}
+			}
+
 			return scrollTop;
 		}
 	});

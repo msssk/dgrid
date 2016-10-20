@@ -8,26 +8,42 @@
 			@import "../css/dgrid.css";
 			@import "../css/skins/claro.css";
 
+			body {
+				background-color: rgb(36, 36, 36);
+			}
+
 			#listNode {
 				height: 600px;
 				margin: 20px;
 				width: 800px;
 			}
 
-			.dgrid-row {
-				border-bottom: 1px solid rgb(70, 107, 145);
-				font-size: 16px;
-				padding: 6px;
+			.field-id {
+				width: 140px;
 			}
-		</style>
 
-		<style>
-			body {
-				background-color: rgb(36, 36, 36);
+			.claro .dgrid-list .dgrid-row {
+				border-bottom: 1px solid rgb(17, 19, 20);
+				padding: 6px;
 			}
 
 			.claro .dgrid {
 				color: rgb(44, 110, 173);
+				font-size: 16px;
+			}
+
+			.claro .dgrid-header,
+			.claro .dgrid-row {
+				background-image: none;
+			}
+
+			.claro .dgrid-header {
+				background-color: rgb(25, 31, 37);
+				color: rgb(93, 165, 235);
+			}
+
+			.claro .dgrid-header .dgrid-cell:hover {
+				background: rgb(34, 55, 75);
 			}
 
 			.claro .dgrid,
@@ -36,9 +52,9 @@
 				background-color: rgb(44, 44, 44);
 			}
 
-			.claro .dgrid-row {
-				background-image: none;
+			.claro .dgrid-cell {
 				border-color: rgb(17, 19, 20);
+				padding: 6px;
 			}
 
 			.claro .dgrid-row:hover {
@@ -57,26 +73,56 @@
 				'dojo/_base/declare',
 				'dojo/dom',
 				'dgrid/OnDemandList',
+				'dgrid/OnDemandGrid',
 				'dgrid/extensions/VirtualScrollbar',
 				'dgrid/test/data/ImaginaryStore'
-			], function(declare, dom, OnDemandList, VirtualScrollbar, ImaginaryStore) {
+			], function(declare, dom, OnDemandList, OnDemandGrid, VirtualScrollbar, ImaginaryStore) {
 				var VSList = declare([OnDemandList, VirtualScrollbar]);
+				var VSGrid = declare([OnDemandGrid, VirtualScrollbar]);
 				var store = new ImaginaryStore(10000);
+				var list = false;
 
-				//window.list = new OnDemandList({
-				window.list = new VSList({
-					debug: true,
-					pagingMethod: 'debounce',
-					pagingDelay: 250,
-					collection: store,
-					renderRow: function(item) {
-						var row = document.createElement('div');
+				if (list) {
+					//window.list = new OnDemandList({
+					window.list = new VSList({
+						//debug: true,
+						//pagingMethod: 'debounce',
+						//pagingDelay: 250,
+						collection: store,
+						renderRow: function(item) {
+							var row = document.createElement('div');
 
-						row.textContent = 'Row ' + item.id;
+							row.textContent = 'Row ' + item.id;
 
-						return row;
-					}
-				}, dom.byId('listNode'));
+							return row;
+						}
+					}, dom.byId('listNode'));
+				}
+				else {
+					window.grid = new VSGrid({
+						collection: store,
+						columns: {
+							id: {
+								label: 'ID',
+								sortable: false
+							},
+							name: {
+								label: 'Name',
+								get: function(item) {
+									return 'Item ' + item.id;
+								},
+								sortable: false
+							},
+							time: {
+								label: 'Time',
+								get: function() {
+									return (new Date()).toLocaleString();
+								},
+								sortable: false
+							}
+						}
+					}, dom.byId('listNode'));
+				}
 			})
 		</script>
 	</body>
