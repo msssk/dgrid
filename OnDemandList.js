@@ -414,22 +414,8 @@ define([
 		},
 
 		lastScrollTop: 0,
-		_processScroll: function () {
+		_processScroll: function (event) {
 			this.log('processScroll', arguments.length ? 'event' : 'autoload');
-			if (this._getHeadPreload()) {
-				var info = {
-					topPreload: this._getHeadPreload().node.offsetHeight,
-					height: this.contentNode.scrollHeight,
-					rowsHeight: Array.prototype.slice.call(this.scrollNode.querySelectorAll('.dgrid-row')).reduce(function(a, b) {
-						return a + b.offsetHeight;
-					}, 0),
-					bottomPreload: this._getHeadPreload().next.node.offsetHeight
-				};
-				info.rowHeight = this._getHeadPreload().rowHeight;
-				info.rowsHeight2 = Array.prototype.slice.call(this.scrollNode.querySelectorAll('.dgrid-row')).length * this._getHeadPreload().rowHeight;
-				info.totalHeight = info.topPreload + info.rowsHeight2 + info.bottomPreload;
-				console.table([info]);
-			}
 			// summary:x
 			//		Checks to make sure that everything in the viewable area has been
 			//		downloaded, and triggering a request for the necessary data when needed.
@@ -443,11 +429,10 @@ define([
 			}
 
 			var grid = this,
-				// grab current visible top from event if provided, otherwise from node
-				visibleTop = this.getScrollPosition().y,
-				visibleBottom = this.scrollNode.offsetHeight + visibleTop,
+				visibleTop,
+				visibleBottom,
 				priorPreload, preloadNode,
-				lastScrollTop = grid.lastScrollTop,
+				lastScrollTop,
 				requestBuffer = grid.bufferRows * rowHeight,
 				searchBuffer = requestBuffer - rowHeight, // Avoid rounding causing multiple queries
 				// References related to emitting dgrid-refresh-complete if applicable
@@ -466,12 +451,25 @@ define([
 			// seem to make it break more or less, so I do not know…
 			var mungeAmount = 1;
 
-			grid.lastScrollTop = visibleTop;
+			// If _processScroll was triggered by an event, update the scrollTop
+			if (event) {
+				visibleTop = this.getScrollPosition().y;
+				grid.lastScrollTop = visibleTop;
+			}
+			// If _processScroll was instead called recursively, scrollTop may have changed due to DOM manipulation and
+			// imprecision in calculating scrollTop, but for functional purposes we want to pretend it has not changed
+			else {
+				visibleTop = grid.lastScrollTop;
+			}
+
+			visibleBottom = this.scrollNode.offsetHeight + visibleTop;
+			lastScrollTop = grid.lastScrollTop;
 
 			function calculateDistanceOffset(preload, removeBelow) {
 				if (removeBelow) {
 					return grid._getContentChildOffsetTop(preload.node) - visibleBottom;
 				} else {
+					/* jshint maxlen: 121 */
 					return visibleTop - (grid._getContentChildOffsetTop(preload.node) + grid._getPreloadHeight(preload));
 				}
 			}
@@ -832,23 +830,6 @@ define([
 
 		_adjustPreloadHeight: function (preload, noMax) {
 			preload.node.style.height = this._calculatePreloadHeight(preload, noMax) + 'px';
-
-			var rows = Array.prototype.slice.call(this.bodyNode.querySelectorAll('.dgrid-row'));
-			var topPreload = this._getHeadPreload();
-			var info = {
-				_total: this._total,
-				renderedRows: rows.length,
-				topHeight: topPreload.node.offsetHeight,
-				topRows: topPreload.count,
-				rowsHeight: rows.reduce(function(p, c) {
-					return p + c.offsetHeight;
-				}, 0),
-				bottomHeight: topPreload.next.node.offsetHeight,
-				bottomRows: topPreload.next.count,
-				actualHeight: this.bodyNode.scrollHeight
-			};
-			info.totalHeight = info.topHeight + info.rowsHeight + info.bottomHeight;
-			console.table([info]);
 		},
 
 		_calculatePreloadHeight: function (preload, noMax) {

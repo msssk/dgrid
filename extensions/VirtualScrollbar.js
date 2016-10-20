@@ -5,13 +5,20 @@
  * 		All other modules will listen continue to listen to scrolling on grid.bodyNode
  */
 
+/*
+ * TODO: It would be good to keep persistent references to the top and bottom preloads
+ */
+
 define([
 	'dojo/_base/declare',
 	'dojo/dom-construct',
 	'dojo/on'
 ], function(declare, domConstruct, on) {
-	var BOTTOM_PRELOAD_HEIGHT = 2000;
-	var TOP_PRELOAD_HEIGHT = 2000;
+	// TODO: what is the optimal preload height? It should be high enough to prevent the user from quickly scrolling
+	// to the beginning or end before the scrollbarNode has had a chance to sync.
+	var BOTTOM_PRELOAD_HEIGHT = 5000;
+	var TOP_PRELOAD_HEIGHT = 5000;
+	// TODO: what is the optimal height? It should be high enough for good fidelity; small enough for performance.
 	var SCROLLBAR_MAX_HEIGHT = 50000;
 
 	// for debugging
@@ -26,8 +33,6 @@ define([
 		// divided by the height of the scrollbar node.
 		// It should always be greater than or equal to 1, as the scrollbar height will be clamped at
 		// a maximum height, but will shrink to below that to match the contentNode.
-		// scrollbarNode.scrollTop === bodyNode.scrollTop / _scrollScaleFactor
-		// bodyNode.scrollTop === scrollbarNode.scrollTop * _scrollScaleFactor
 		_scrollScaleFactor: 1,
 
 		buildRendering: function() {
@@ -57,6 +62,7 @@ define([
 		},
 
 		postCreate: function() {
+			// TODO: should this be enforced?
 			if (this.pagingMethod === 'debounce' && this.pagingDelay < 100) {
 				this.pagingDelay = 100;
 			}
@@ -66,6 +72,7 @@ define([
 			var self = this;
 			var bodyNode = this.bodyNode;
 			var scrollbarNode = this.scrollbarNode;
+			var bodyNodeLastScrollTop = 0;
 			var bodyNodeScrollPauseCounter = 0;
 			var bodyNodeScrollResetHandle;
 			var scrollbarScrollPauseCounter = 0;
@@ -83,6 +90,42 @@ define([
 				scrollbarScrollPauseCounter = 0;
 			}
 
+			// Set grid.bodyNode.scrollTop based on grid.scrollbarNode.scrollTop
+			this._updateBodyScrollTop = function() {
+				// scrollTop is sometimes not a whole number, so round it
+				var newScrollTop = Math.round(scrollbarNode.scrollTop);
+
+				clearTimeout(bodyNodeScrollResetHandle);
+
+				if (newScrollTop) {
+					assert(newScrollTop + scrollbarNode.offsetHeight <= scrollbarNode.scrollHeight,
+						'scrollbarNode scrollTop + offsetHeight exceeds scrollHeight'
+					);
+					// If the scrollbarNode is at the bottom (scrollTop + offsetHeight === scrollHeight),
+					// don't do any calculation, just set the bodyNode to its bottom as well.
+					if (newScrollTop + scrollbarNode.offsetHeight === scrollbarNode.scrollHeight) {
+						newScrollTop = bodyNode.scrollHeight - bodyNode.offsetHeight;
+
+						if (bodyNode.scrollTop !== newScrollTop) {
+							bodyNodeScrollPauseCounter++;
+							bodyNode.scrollTop = newScrollTop;
+							bodyNodeScrollResetHandle = setTimeout(resetBodyNodeScrollPause, 200);
+						}
+
+						return;
+					}
+					else {
+						newScrollTop = Math.round(newScrollTop * self._scrollScaleFactor);
+					}
+				}
+
+				if (bodyNode.scrollTop !== newScrollTop) {
+					bodyNodeScrollPauseCounter++;
+					self.scrollTo({ y: newScrollTop });
+					bodyNodeScrollResetHandle = setTimeout(resetBodyNodeScrollPause, 200);
+				}
+			};
+
 			on(bodyNode, 'scroll', function() {
 				if (bodyNodeScrollPauseCounter) {
 					bodyNodeScrollPauseCounter--;
@@ -91,8 +134,29 @@ define([
 
 				// scrollTop is sometimes not a whole number, so round it
 				var newScrollTop = Math.round(bodyNode.scrollTop);
+				var topPreload = self._getHeadPreload();
+				var bottomPreload;
+				var doProcessScroll = false;
 
 				clearTimeout(scrollbarScrollResetHandle);
+
+				// Scroll direction is down
+				if (newScrollTop > bodyNodeLastScrollTop) {
+					bottomPreload = topPreload.next;
+
+					if (newScrollTop + (2 * bodyNode.offsetHeight) > bottomPreload.node.offsetTop) {
+						doProcessScroll = true;
+					}
+				}
+				// Scroll direction is up
+				else {
+					/* jshint maxlen:122 */
+					if (newScrollTop < topPreload.node.offsetTop + topPreload.node.offsetHeight + bodyNode.offsetHeight) {
+						doProcessScroll = true;
+					}
+				}
+
+				bodyNodeLastScrollTop = newScrollTop;
 
 				// Besides wasting time, unnecessary calculations can introduce rounding errors.
 				// If the bodyNode is at the top (scrollTop === 0), don't do any calculation, just
@@ -105,10 +169,18 @@ define([
 					// If the bodyNode is at the bottom (scrollTop + offsetHeight === scrollHeight),
 					// don't do any calculation, just set the scrollbar node to its bottom as well.
 					if (newScrollTop + bodyNode.offsetHeight === bodyNode.scrollHeight) {
-						newScrollTop = scrollbarNode.scrollHeight - scrollbarNode.offsetHeight;
+						bottomPreload = bottomPreload || topPreload.next;
+
+						// If the bottomPreload has no extra height, then we've really scrolled to the bottom
+						if (bottomPreload.extraHeight === 0) {
+							newScrollTop = scrollbarNode.scrollHeight - scrollbarNode.offsetHeight;
+						}
+						else {
+							newScrollTop = Math.round(self._getScrollTop() / self._scrollScaleFactor);
+						}
 					}
 					else {
-						newScrollTop = Math.round(self._getBodyScrollTop() / self._scrollScaleFactor);
+						newScrollTop = Math.round(self._getScrollTop() / self._scrollScaleFactor);
 					}
 				}
 
@@ -119,7 +191,14 @@ define([
 					scrollbarNode.scrollTop = newScrollTop;
 					scrollbarScrollResetHandle = setTimeout(resetScrollbarScrollPause, 200);
 				}
-
+				// If the scrollbarNode's scroll handle did not move, but the scrolling within the body requires
+				// loading new rows, trigger grid._processScroll
+				else if (doProcessScroll) {
+					console.log('bodyNode.scroll -> _processScroll');
+					// Provide a parameter to _processScroll so that _processScroll knows it has not been called
+					// recursively
+					self._processScroll({ target: bodyNode });
+				}
 			});
 
 			on(scrollbarNode, 'scroll', function() {
@@ -128,27 +207,7 @@ define([
 					return;
 				}
 
-				// scrollTop is sometimes not a whole number, so round it
-				var newScrollTop = Math.round(scrollbarNode.scrollTop);
-
-				clearTimeout(bodyNodeScrollResetHandle);
-
-				if (newScrollTop) {
-					assert(newScrollTop + scrollbarNode.offsetHeight <= scrollbarNode.scrollHeight,
-						'scrollbarNode scrollTop + offsetHeight exceeds scrollHeight'
-					);
-					if (newScrollTop + scrollbarNode.offsetHeight === scrollbarNode.scrollHeight) {
-						newScrollTop = bodyNode.scrollHeight - bodyNode.offsetHeight;
-					}
-					else {
-						newScrollTop = Math.round(newScrollTop * self._scrollScaleFactor);
-					}
-				}
-				assert(bodyNode.scrollTop !== newScrollTop, 'Content scroll top did not change');
-
-				bodyNodeScrollPauseCounter++;
-				self.scrollTo({ y: newScrollTop });
-				bodyNodeScrollResetHandle = setTimeout(resetBodyNodeScrollPause, 200);
+				self._updateBodyScrollTop();
 			});
 		},
 
@@ -173,6 +232,16 @@ define([
 			});
 		},
 
+		// Rendering rows can change the dimensions of grid.bodyNode, altering the scroll position,
+		// so re-sync its scroll position with grid.scrollbarNode
+		renderArray: function() {
+			var rows = this.inherited(arguments);
+
+			this._updateBodyScrollTop();
+
+			return rows;
+		},
+
 		// This method should always receive a y-value appropriate for the grid's full (virtual) height.
 		scrollTo: function(options) {
 			var topPreload;
@@ -187,7 +256,6 @@ define([
 				topPreload = this._getHeadPreload();
 
 				if (topPreload) {
-					assert(topPreload.extraHeight !== undefined, 'topPreload.extraHeight is undefined');
 					if (topPreload.extraHeight !== undefined) {
 						newScrollTop -= topPreload.extraHeight;
 					}
@@ -269,19 +337,15 @@ define([
 		 * Calculate the total virtual height of grid.bodyNode.
 		 */
 		_getContentHeight: function() {
-			// grid._total: total number of currently rendered rows
-			// preload.count: number of rows the preload is holding space for
-			// preload.rowHeight: average height of sibling rows
-
 			var topPreload = this._getHeadPreload();
 			var bottomPreload = topPreload.next;
 			var contentHeight = this.bodyNode.scrollHeight;
 
 			if (topPreload) {
-				contentHeight += topPreload.extraHeight === undefined ? 0 : topPreload.extraHeight;
+				contentHeight += topPreload.extraHeight || 0;
 
-				if (bottomPreload && bottomPreload.extraHeight !== undefined) {
-					contentHeight += bottomPreload.extraHeight;
+				if (bottomPreload) {
+					contentHeight += bottomPreload.extraHeight || 0;
 				}
 			}
 
@@ -292,26 +356,38 @@ define([
 			return preload.virtualHeight || preload.node.offsetHeight;
 		},
 
-		_getScrollTop: function() {
-			return this.scrollNode.scrollTop * this._scrollScaleFactor;
-		},
-
-		/**
+		/*
 		 * Calculate top scroll position of grid.bodyNode within its total virtual height.
 		 */
-		_getBodyScrollTop: function() {
-			var scrollTop = Math.round(this.bodyNode.scrollTop);
-			var topPreload = this._getHeadPreload();
-			var scrollbarScrollPercent;
+		_getScrollTop: function() {
+			var scrollTop;
+			var topPreload;
+			var bottomPreload;
 
-			if (topPreload.extraHeight) {
-				scrollTop += topPreload.extraHeight;
+			// If the scrollbarNode scroller is at the bottom, the scrollTop can be more precisely calculated
+			if (this.scrollbarNode.scrollTop &&
+				this.scrollbarNode.scrollTop + this.scrollbarNode.offsetHeight === this.scrollbarNode.scrollHeight) {
+				scrollTop = this._getContentHeight() - this.bodyNode.offsetHeight;
 			}
 			else {
-				scrollbarScrollPercent = this.scrollbarNode.scrollTop / this.scrollbarNode.scrollHeight;
-				scrollTop = Math.round(this._getContentHeight() * scrollbarScrollPercent);
+				topPreload = this._getHeadPreload();
+				bottomPreload = topPreload.next;
+
+				// If the bottom preload has been scrolled into sight, we can't accurately calculate the scrollTop
+				// simply by adding topPreload.extraHeight - we have to fall back to scaling from the scrollbarNode
+				if (bottomPreload.node.offsetTop < this.bodyNode.scrollTop + this.bodyNode.offsetHeight) {
+					scrollTop = this.scrollbarNode.scrollTop * this._scrollScaleFactor;
+				}
+				else {
+					scrollTop = Math.round(this.bodyNode.scrollTop);
+
+					if (topPreload.extraHeight) {
+						scrollTop += topPreload.extraHeight;
+					}
+				}
 			}
 
+			// TODO: round? floor? ceil?
 			return scrollTop;
 		}
 	});
