@@ -10,11 +10,11 @@
 
 			body {
 				background-color: rgb(36, 36, 36);
+				color: rgb(44, 110, 173);
 			}
 
-			#listNode {
+			.dgrid {
 				height: 600px;
-				margin: 20px;
 				width: 800px;
 			}
 
@@ -60,11 +60,27 @@
 			.claro .dgrid-row:hover {
 				background-color: rgb(52, 45, 35);
 			}
+
+			.container {
+				display: flex;
+				justify-content: center;
+				margin: 20px;
+			}
 		</style>
 	</head>
 
 	<body class="claro">
-		<div id="listNode"></div>
+		<div class="container">
+			<div style="margin-right: 20px">
+				<h1>OnDemandGrid with 500,000 rows</h2>
+				<div id="grid"></div>
+			</div>
+
+			<div>
+				<h1>VirtualScrollbar with 1,000,000,000 rows</h2>
+				<div id="gigaGrid"></div>
+			</div>
+		</div>
 
 		<script src="../../dojo/dojo.js" data-dojo-config="async: true"></script>
 
@@ -79,16 +95,46 @@
 			], function(declare, dom, OnDemandList, OnDemandGrid, VirtualScrollbar, ImaginaryStore) {
 				var VSList = declare([OnDemandList, VirtualScrollbar]);
 				var VSGrid = declare([OnDemandGrid, VirtualScrollbar]);
-				var store = new ImaginaryStore(10000);
+				var bigStore = new ImaginaryStore(500000); // one million is likely to crash the browser
+				var GIGAstore = new ImaginaryStore(1000000000000); // one trillion
+
+				var compare = true;
 				var list = false;
+				var gridColumns = {
+					id: {
+						label: 'ID',
+						sortable: false
+					},
+					name: {
+						label: 'Name',
+						get: function(item) {
+							return 'Item ' + (new Number(item.id)).toLocaleString();
+						},
+						sortable: false
+					},
+					time: {
+						label: 'Time',
+						get: function() {
+							return (new Date()).toLocaleString();
+						},
+						sortable: false
+					}
+				};
+
+				if (compare) {
+					window.grid = new OnDemandGrid({
+						collection: bigStore,
+						columns: gridColumns
+					}, dom.byId('grid'));
+				}
 
 				if (list) {
 					//window.list = new OnDemandList({
 					window.list = new VSList({
-						//debug: true,
+						debug: false,
 						//pagingMethod: 'debounce',
 						//pagingDelay: 250,
-						collection: store,
+						collection: GIGAstore,
 						renderRow: function(item) {
 							var row = document.createElement('div');
 
@@ -96,34 +142,16 @@
 
 							return row;
 						}
-					}, dom.byId('listNode'));
+					}, dom.byId('gigaGrid'));
 				}
 				else {
-					window.grid = new VSGrid({
-						collection: store,
-						columns: {
-							id: {
-								label: 'ID',
-								sortable: false
-							},
-							name: {
-								label: 'Name',
-								get: function(item) {
-									return 'Item ' + item.id;
-								},
-								sortable: false
-							},
-							time: {
-								label: 'Time',
-								get: function() {
-									return (new Date()).toLocaleString();
-								},
-								sortable: false
-							}
-						}
-					}, dom.byId('listNode'));
+					window.gigaGrid = new VSGrid({
+						debug: false,
+						collection: GIGAstore,
+						columns: gridColumns
+					}, dom.byId('gigaGrid'));
 				}
-			})
+			});
 		</script>
 	</body>
 </html>

@@ -10,6 +10,12 @@ define([
 	'./util/misc'
 ], function (List, _StoreMixin, declare, lang, domConstruct, on, when, query, miscUtil) {
 
+	var POSITION = {
+		ABOVE: 1,
+		BELOW: 2,
+		VISIBLE: 3
+	};
+
 	var preloadId = 0;
 
 	function nextPreloadId() {
@@ -26,11 +32,8 @@ define([
 	}
 
 	return declare([List, _StoreMixin], {
-		log: function() {
-			var args = [String(Date.now()).substr(-5) + ':'];
-
-			args = args.concat(Array.prototype.slice.call(arguments));
-			console.log.apply(console, args);
+		formatLog: function (message) {
+			return String(Date.now()).substr(-5) + ': ' + message;
 		},
 
 		// summary:
@@ -415,7 +418,7 @@ define([
 
 		lastScrollTop: 0,
 		_processScroll: function (event) {
-			this.log('processScroll', arguments.length ? 'event' : 'autoload');
+			console.group('processScroll - ' + (arguments.length ? 'event' : 'autoload'));
 			// summary:x
 			//		Checks to make sure that everything in the viewable area has been
 			//		downloaded, and triggering a request for the necessary data when needed.
@@ -437,19 +440,10 @@ define([
 				searchBuffer = requestBuffer - rowHeight, // Avoid rounding causing multiple queries
 				// References related to emitting dgrid-refresh-complete if applicable
 				lastRows,
+				preloadPosition,
 				preloadSearchNext = true;
 
-			// XXX: I do not know why this happens.
-			// munging the actual location of the viewport relative to the preload node by a few pixels in either
-			// direction is necessary because at least WebKit on Windows seems to have an error that causes it to
-			// not quite get the entire element being focused in the viewport during keyboard navigation,
-			// which means it becomes impossible to load more data using keyboard navigation because there is
-			// no more data to scroll to to trigger the fetch.
-			// 1 is arbitrary and just gets it to work correctly with our current test cases; don’t wanna go
-			// crazy and set it to a big number without understanding more about what is going on.
-			// wondering if it has to do with border-box or something, but changing the border widths does not
-			// seem to make it break more or less, so I do not know…
-			var mungeAmount = 1;
+			lastScrollTop = grid.lastScrollTop;
 
 			// If _processScroll was triggered by an event, update the scrollTop
 			if (event) {
@@ -463,7 +457,8 @@ define([
 			}
 
 			visibleBottom = this.scrollNode.offsetHeight + visibleTop;
-			lastScrollTop = grid.lastScrollTop;
+			console.log(this.formatLog('scrollDelta: ' + (visibleTop - lastScrollTop)));
+			console.log(this.formatLog('visibleTop: ' + visibleTop));
 
 			function calculateDistanceOffset(preload, removeBelow) {
 				if (removeBelow) {
@@ -484,6 +479,7 @@ define([
 			}
 
 			function removeDistantNodes(preload, removeBelow) {
+				console.warn(grid.formatLog('prune ' + (preload.next ? 'top' : 'bottom') + ', ' + removeBelow));
 				// we check to see the the nodes are "far off"
 
 				var startingPreload = preload;
@@ -619,16 +615,26 @@ define([
 				grid.preload = preload;
 				preloadNode = preload.node;
 				var preloadTop = this._getContentChildOffsetTop(preloadNode);
+				preloadPosition = this._getPreloadPosition(preload, searchBuffer);
 
-				if (visibleBottom + mungeAmount + searchBuffer < preloadTop) {
+				if (preloadPosition === POSITION.BELOW) {
+					console.log(this.formatLog('preload ' + (preload.next ? 'top' : 'bottom') + ' below LOS'));
+					console.table([{
+						scrollTop: this.bodyNode.scrollTop,
+						preloadTop: preloadTop,
+						preloadNodeOffsetTop: preload.node.offsetTop,
+						topPreloadHeight: this._getHeadPreload().extraHeight
+					}]);
 					// the preload is below the line of sight
 					preload = traversePreload(preload, (preloadSearchNext = false));
 				}
-				else if (visibleTop - mungeAmount - searchBuffer > preloadTop + grid._getPreloadHeight(preload)) {
+				else if (preloadPosition === POSITION.ABOVE) {
+					console.log(this.formatLog('preload ' + (preload.next ? 'top' : 'bottom') + ' above LOS'));
 					// the preload is above the line of sight
 					preload = traversePreload(preload, (preloadSearchNext = true));
 				}
 				else {
+					console.log(this.formatLog('preload ' + (preload.next ? 'top' : 'bottom') + ' visible'));
 					// the preload node is visible, or close to visible, better show it
 					var offset = ((preloadNode.top ? visibleTop - requestBuffer :
 							visibleBottom) - preloadTop) / preload.rowHeight;
@@ -686,6 +692,7 @@ define([
 						options.start = preloadNode.rowIndex - queryRowsOverlap;
 						options.count = Math.min(count + queryRowsOverlap, grid.maxRowsPerPage);
 						preloadNode.rowIndex = options.start + options.count;
+						console.log(this.formatLog('fetch below ' + options.count + ' rows at index ' + options.start));
 					}
 					else {
 						// add new rows above
@@ -709,6 +716,7 @@ define([
 						options.start = preload.count;
 						options.count = Math.min(count + queryRowsOverlap, grid.maxRowsPerPage);
 						options.scrollingUp = true;
+						console.log(this.formatLog('fetch above ' + options.count + ' rows at index ' + options.start));
 					}
 					if (keepScrollTo && beforeNode && beforeNode.offsetWidth) {
 						// Before adjusting the size of the preload node for the new rows yet to be loaded, remember
@@ -751,6 +759,9 @@ define([
 								if ((Date.now() - preQueryTick) > 35) {
 									console.warn('Query and render took', Date.now() - preQueryTick, 'ms');
 								}
+
+								console.log(grid.formatLog('rendered ' + rows.length + ' rows'));
+
 								var gridRows = grid._rows;
 								if (gridRows && !('queryLevel' in options) && rows.length) {
 									// Update relevant observed range for top-level items
@@ -780,6 +791,11 @@ define([
 									// row height, we may need to adjust the scroll once they are filled in
 									// so we don't "jump" in the scrolling position
 									var pos = grid.getScrollPosition();
+									console.log(grid.formatLog(
+										'scrollTo ' + pos.x + ', ' +
+										(pos.y + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo) +
+										' ' + pos.y + ' ' + grid._getContentChildOffsetTop(beforeNode) + ' ' + keepScrollTo
+									));
 									grid.scrollTo({
 										// Since we already had to query the scroll position,
 										// include x to avoid TouchScroll querying it again on its end.
@@ -824,6 +840,7 @@ define([
 				}
 			}
 
+			console.groupEnd();
 			// return the promise from the last render
 			return lastRows;
 		},
@@ -924,6 +941,40 @@ define([
 		 */
 		_getPreloadHeight: function(preload) {
 			return preload.node.offsetHeight;
+		},
+
+		/*
+		 * Get the position (above, below, visible) of a preload node, relative to the scrolling viewport.
+		 * _processScroll has to deal with virtual scroll positions if VirtualScrollbar is active.
+		 * For the purpose of calculating relative positions of DOM elements, we want straight DOM values,
+		 * not virtual values, so this logic has been moved into this method and uses geometry values directly
+		 * from the DOM.
+		 */
+		_getPreloadPosition: function(preload, searchBuffer) {
+			var position = POSITION.VISIBLE;
+			var visibleTop = this.bodyNode.scrollTop;
+			var visibleBottom = visibleTop + this.bodyNode.offsetHeight;
+
+			// XXX: I do not know why this happens.
+			// munging the actual location of the viewport relative to the preload node by a few pixels in either
+			// direction is necessary because at least WebKit on Windows seems to have an error that causes it to
+			// not quite get the entire element being focused in the viewport during keyboard navigation,
+			// which means it becomes impossible to load more data using keyboard navigation because there is
+			// no more data to scroll to to trigger the fetch.
+			// 1 is arbitrary and just gets it to work correctly with our current test cases; don’t wanna go
+			// crazy and set it to a big number without understanding more about what is going on.
+			// wondering if it has to do with border-box or something, but changing the border widths does not
+			// seem to make it break more or less, so I do not know…
+			var mungeAmount = 1;
+
+			if (visibleBottom + mungeAmount + searchBuffer < preload.node.offsetTop) {
+				position = POSITION.BELOW;
+			}
+			else if (visibleTop - mungeAmount - searchBuffer > preload.node.offsetTop + preload.node.offsetHeight) {
+				position = POSITION.ABOVE;
+			}
+
+			return position;
 		},
 
 		_getRenderedCollection: function (/* preload */) {

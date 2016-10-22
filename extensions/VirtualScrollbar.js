@@ -12,14 +12,15 @@
 define([
 	'dojo/_base/declare',
 	'dojo/dom-construct',
-	'dojo/on'
-], function(declare, domConstruct, on) {
+	'dojo/on',
+	'../util/misc'
+], function(declare, domConstruct, on, miscUtil) {
 	// TODO: what is the optimal preload height? It should be high enough to prevent the user from quickly scrolling
 	// to the beginning or end before the scrollbarNode has had a chance to sync.
 	var BOTTOM_PRELOAD_HEIGHT = 5000;
 	var TOP_PRELOAD_HEIGHT = 5000;
 	// TODO: what is the optimal height? It should be high enough for good fidelity; small enough for performance.
-	var SCROLLBAR_MAX_HEIGHT = 50000;
+	var SCROLLBAR_MAX_HEIGHT = 20000;
 
 	// for debugging
 	function assert(condition) {
@@ -71,29 +72,36 @@ define([
 			var bodyNode = this.bodyNode;
 			var scrollbarNode = this.scrollbarNode;
 			var bodyNodeLastScrollTop = 0;
-			var bodyNodeScrollPauseCounter = 0;
-			var bodyNodeScrollResetHandle;
-			var scrollbarScrollPauseCounter = 0;
-			var scrollbarScrollResetHandle;
+			var isBodyScrollDisabled = false;
+			var isScrollbarScrollDisabled = false;
 
-			// Sometimes the pause counter gets to a high value, which seemingly should not happen.
-			// Reset it if there is no scroll activity for a bit.
-			// TODO: why does the counter get high? For every manipulation of 'scrollTop', the handler
-			// *should* be called and decrement the pause counter.
-			function resetBodyNodeScrollPause() {
-				bodyNodeScrollPauseCounter = 0;
-			}
+			/*
+			 * Some reliable way of disabling one scroll handler when the other is active is needed.
+			 * One might think it is a simple matter of setting a flag in one handler, to be checked and toggled by
+			 * the other handler. In practice, the opposing handler sometimes runs multiple times, with the first run
+			 * clearing the flag and subsequent runs that should be disabled running as normal.
+			 * So how about a counter? Increment a counter each time, and have the opposing handler decrement it. Once
+			 * again, insanity is the norm - sometimes the opposing handler is never run, so the flag gets incremented
+			 * multiple times (without getting the expecting decrements). Then later when the handler *should* run
+			 * it is disabled from stale increments to the flag that disables it.
+			 * Setting a flag and running a debounced re-enable function seems reasonably accurate, but what if
+			 * the handler takes more than the debounced delay? Either handler might trigger _processScroll, which
+			 * might trigger a data fetch, which could take a long time.
+			 */
+			var enableBodyScrollHandler = miscUtil.debounce(function () {
+				isBodyScrollDisabled = false;
+//				console.log(self.formatLog('body scroll enabled'));
+			}, window, 150);
 
-			function resetScrollbarScrollPause() {
-				scrollbarScrollPauseCounter = 0;
-			}
+			var enableScrollbarScrollHandler = miscUtil.debounce(function () {
+				isScrollbarScrollDisabled = false;
+//				console.log(self.formatLog('scrollbar scroll enabled'));
+			}, window, 150);
 
 			// Set grid.bodyNode.scrollTop based on grid.scrollbarNode.scrollTop
 			this._updateBodyScrollTop = function() {
 				// scrollTop is sometimes not a whole number, so round it
 				var newScrollTop = Math.round(scrollbarNode.scrollTop);
-
-				clearTimeout(bodyNodeScrollResetHandle);
 
 				if (newScrollTop) {
 					assert(newScrollTop + scrollbarNode.offsetHeight <= scrollbarNode.scrollHeight,
@@ -105,9 +113,9 @@ define([
 						newScrollTop = bodyNode.scrollHeight - bodyNode.offsetHeight;
 
 						if (bodyNode.scrollTop !== newScrollTop) {
-							bodyNodeScrollPauseCounter++;
+							isBodyScrollDisabled = true;
 							bodyNode.scrollTop = newScrollTop;
-							bodyNodeScrollResetHandle = setTimeout(resetBodyNodeScrollPause, 200);
+							enableBodyScrollHandler();
 						}
 
 						return;
@@ -118,15 +126,15 @@ define([
 				}
 
 				if (self._getScrollTopFromBody() !== newScrollTop) {
-					bodyNodeScrollPauseCounter++;
+					isBodyScrollDisabled = true;
 					self.scrollTo({ y: newScrollTop });
-					bodyNodeScrollResetHandle = setTimeout(resetBodyNodeScrollPause, 200);
+					enableBodyScrollHandler();
 				}
 			};
 
 			on(bodyNode, 'scroll', function() {
-				if (bodyNodeScrollPauseCounter) {
-					bodyNodeScrollPauseCounter--;
+				if (isBodyScrollDisabled) {
+//					console.log(self.formatLog('body: skip scroll'));
 					return;
 				}
 
@@ -137,7 +145,6 @@ define([
 				var doProcessScroll = false;
 
 				self._lastScrolledNode = bodyNode;
-				clearTimeout(scrollbarScrollResetHandle);
 
 				// Scroll direction is down
 				if (newScrollTop > bodyNodeLastScrollTop) {
@@ -188,14 +195,15 @@ define([
 				// Because of the scaling factor, a small scroll in the content may not cause the
 				// scrollbarNode scroll handle to move.
 				if (scrollbarNode.scrollTop !== newScrollTop) {
-					scrollbarScrollPauseCounter++;
+					isScrollbarScrollDisabled = true;
+//					console.log(self.formatLog('body: scrollbar scroll disabled'));
 					scrollbarNode.scrollTop = newScrollTop;
-					scrollbarScrollResetHandle = setTimeout(resetScrollbarScrollPause, 200);
+					enableScrollbarScrollHandler();
 				}
 				// If the scrollbarNode's scroll handle did not move, but the scrolling within the body requires
 				// loading new rows, trigger grid._processScroll
 				else if (doProcessScroll) {
-					self.log('bodyNode.scroll -> _processScroll');
+//					console.log(self.formatLog('bodyNode.scroll -> _processScroll'));
 					// Provide a parameter to _processScroll so that _processScroll knows it has not been called
 					// recursively
 					self._processScroll({ target: bodyNode });
@@ -203,11 +211,12 @@ define([
 			});
 
 			on(scrollbarNode, 'scroll', function() {
-				if (scrollbarScrollPauseCounter) {
-					scrollbarScrollPauseCounter--;
+				if (isScrollbarScrollDisabled) {
+//					console.log(self.formatLog('scrollbar: skip scroll'));
 					return;
 				}
 
+//				console.log(self.formatLog('scrollbar: DO scroll'));
 				self._lastScrolledNode = scrollbarNode;
 				self._updateBodyScrollTop();
 			});
@@ -236,16 +245,26 @@ define([
 
 		// Rendering rows can change the dimensions of grid.bodyNode, altering the scroll position,
 		// so re-sync its scroll position with grid.scrollbarNode
-		renderArray: function() {
-			var rows = this.inherited(arguments);
+		// DISABLED: shouldn't this be covered by OnDemandList._processScroll->grid.scrollTo?
+		// renderArray: function() {
+		// 	var rows = this.inherited(arguments);
 
-			this._updateBodyScrollTop();
+		// 	this._updateBodyScrollTop();
 
-			return rows;
-		},
+		// 	return rows;
+		// },
 
-		// This method should always receive a y-value appropriate for the grid's full (virtual) height.
-		scrollTo: function(options) {
+		/**
+		 * Scroll to the specified offset(s).
+		 * @param [options.x] {number} The x-offset to scroll to
+		 * @param [options.y] {number} The y-offset to scroll to
+		 * The y-value should be appropriate for the grid's full (virtual) height.
+		 */
+		scrollTo: function scrollTo(options) {
+			console.log(this.formatLog('scrollTo[' + scrollTo.caller.nom + ']: ' + options.x + ', ' + options.y));
+			if (scrollTo.caller.nom === undefined) {
+				console.trace();
+			}
 			var topPreload;
 			var newScrollTop;
 
