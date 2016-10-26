@@ -5,10 +5,6 @@
  * 		All other modules will listen continue to listen to scrolling on grid.bodyNode
  */
 
-/*
- * TODO: It would be good to keep persistent references to the top and bottom preloads
- */
-
 define([
 	'dojo/_base/declare',
 	'dojo/dom-construct',
@@ -17,9 +13,10 @@ define([
 ], function(declare, domConstruct, on, miscUtil) {
 	// TODO: what is the optimal preload height? It should be high enough to prevent the user from quickly scrolling
 	// to the beginning or end before the scrollbarNode has had a chance to sync.
-	var BOTTOM_PRELOAD_HEIGHT = 5000;
-	var TOP_PRELOAD_HEIGHT = 5000;
+	var BOTTOM_PRELOAD_HEIGHT = 4;
+	var TOP_PRELOAD_HEIGHT = 4;
 	// TODO: what is the optimal height? It should be high enough for good fidelity; small enough for performance.
+	// It needs to be high enough that the scroll handle has shrunk to minimum size.
 	var SCROLLBAR_MAX_HEIGHT = 20000;
 
 	// for debugging
@@ -39,7 +36,7 @@ define([
 		// a maximum height, but will shrink to below that to match the contentNode.
 		_scrollScaleFactor: 1,
 
-		buildRendering: function() {
+		buildRendering: function buildRendering() {
 			this.inherited(arguments);
 
 			// Add 1 pixel: some browsers (IE, FF) don't make the scrollbar active if it doesn't have visible content
@@ -65,13 +62,12 @@ define([
 			}
 		},
 
-		postCreate: function() {
+		postCreate: function postCreate() {
 			this.inherited(arguments);
 
 			var self = this;
 			var bodyNode = this.bodyNode;
 			var scrollbarNode = this.scrollbarNode;
-			var bodyNodeLastScrollTop = 0;
 			var isBodyScrollDisabled = false;
 			var isScrollbarScrollDisabled = false;
 
@@ -88,83 +84,31 @@ define([
 			 * the handler takes more than the debounced delay? Either handler might trigger _processScroll, which
 			 * might trigger a data fetch, which could take a long time.
 			 */
-			var enableBodyScrollHandler = miscUtil.debounce(function () {
+			var enableBodyScrollHandler = miscUtil.debounce(function enableBodyScrollHandler() {
 				isBodyScrollDisabled = false;
-//				console.log(self.formatLog('body scroll enabled'));
 			}, window, 150);
 
-			var enableScrollbarScrollHandler = miscUtil.debounce(function () {
+			var enableScrollbarScrollHandler = miscUtil.debounce(function enableScrollbarScrollHandler() {
 				isScrollbarScrollDisabled = false;
-//				console.log(self.formatLog('scrollbar scroll enabled'));
 			}, window, 150);
 
-			// Set grid.bodyNode.scrollTop based on grid.scrollbarNode.scrollTop
-			this._updateBodyScrollTop = function() {
-				// scrollTop is sometimes not a whole number, so round it
-				var newScrollTop = Math.round(scrollbarNode.scrollTop);
-
-				if (newScrollTop) {
-					assert(newScrollTop + scrollbarNode.offsetHeight <= scrollbarNode.scrollHeight,
-						'scrollbarNode scrollTop + offsetHeight exceeds scrollHeight'
-					);
-					// If the scrollbarNode is at the bottom (scrollTop + offsetHeight === scrollHeight),
-					// don't do any calculation, just set the bodyNode to its bottom as well.
-					if (newScrollTop + scrollbarNode.offsetHeight === scrollbarNode.scrollHeight) {
-						newScrollTop = bodyNode.scrollHeight - bodyNode.offsetHeight;
-
-						if (bodyNode.scrollTop !== newScrollTop) {
-							isBodyScrollDisabled = true;
-							bodyNode.scrollTop = newScrollTop;
-							enableBodyScrollHandler();
-						}
-
-						return;
-					}
-					else {
-						newScrollTop = Math.round(newScrollTop * self._scrollScaleFactor);
-					}
-				}
-
-				if (self._getScrollTopFromBody() !== newScrollTop) {
-					isBodyScrollDisabled = true;
-					self.scrollTo({ y: newScrollTop });
-					enableBodyScrollHandler();
-				}
-			};
-
-			on(bodyNode, 'scroll', function() {
+			on(bodyNode, 'scroll', function handleBodyScroll() {
 				if (isBodyScrollDisabled) {
-//					console.log(self.formatLog('body: skip scroll'));
 					return;
 				}
 
 				// scrollTop is sometimes not a whole number, so round it
 				var newScrollTop = Math.round(bodyNode.scrollTop);
-				var topPreload = self._getHeadPreload();
+				var topPreload = self.topPreload;
 				var bottomPreload;
-				var doProcessScroll = false;
 
 				self._lastScrolledNode = bodyNode;
 
-				// Scroll direction is down
-				if (newScrollTop > bodyNodeLastScrollTop) {
-					bottomPreload = topPreload.next;
 
-					if (newScrollTop + (2 * bodyNode.offsetHeight) > bottomPreload.node.offsetTop) {
-						// bottom preload node is close to being visible
-						doProcessScroll = true;
-					}
-				}
-				// Scroll direction is up
-				else {
-					/* jshint maxlen:122 */
-					if (newScrollTop < topPreload.node.offsetTop + topPreload.node.offsetHeight + bodyNode.offsetHeight) {
-						// top preload node is close to being visible
-						doProcessScroll = true;
-					}
-				}
+				var velem = document.elementFromPoint(1008, 634);
+				var brow = self.row(velem);
+				console.log(self.formatLog('bodyNode scroll; bottom visible: ' + (brow && brow.id) || velem.id));
 
-				bodyNodeLastScrollTop = newScrollTop;
 
 				// Besides wasting time, unnecessary calculations can introduce rounding errors.
 				// If the bodyNode is at the top (scrollTop === 0), don't do any calculation, just
@@ -196,43 +140,69 @@ define([
 				// scrollbarNode scroll handle to move.
 				if (scrollbarNode.scrollTop !== newScrollTop) {
 					isScrollbarScrollDisabled = true;
-//					console.log(self.formatLog('body: scrollbar scroll disabled'));
 					scrollbarNode.scrollTop = newScrollTop;
 					enableScrollbarScrollHandler();
 				}
-				// If the scrollbarNode's scroll handle did not move, but the scrolling within the body requires
-				// loading new rows, trigger grid._processScroll
-				else if (doProcessScroll) {
-//					console.log(self.formatLog('bodyNode.scroll -> _processScroll'));
-					// Provide a parameter to _processScroll so that _processScroll knows it has not been called
-					// recursively
-					self._processScroll({ target: bodyNode });
-				}
+
+				// Sometimes setting node.scrollTop causes the node to emit a scroll event, sometimes not!
+				// Since we don't know, always ensure the grid's scroll handler is called (it's debounced, so we
+				// don't need to worry about running it too much)
+				self._scrollHandler({
+					target: bodyNode
+				});
 			});
 
-			on(scrollbarNode, 'scroll', function() {
+			on(scrollbarNode, 'scroll', function handleScrollbarScroll() {
 				if (isScrollbarScrollDisabled) {
-//					console.log(self.formatLog('scrollbar: skip scroll'));
 					return;
 				}
 
-//				console.log(self.formatLog('scrollbar: DO scroll'));
 				self._lastScrolledNode = scrollbarNode;
-				self._updateBodyScrollTop();
+
+				// scrollTop is sometimes not a whole number, so round it
+				var newScrollTop = Math.round(scrollbarNode.scrollTop);
+
+				if (newScrollTop) {
+					assert(newScrollTop + scrollbarNode.offsetHeight <= scrollbarNode.scrollHeight,
+						'scrollbarNode scrollTop + offsetHeight exceeds scrollHeight'
+					);
+					// If the scrollbarNode is at the bottom (scrollTop + offsetHeight === scrollHeight),
+					// don't do any calculation, just set the bodyNode to its bottom as well.
+					if (newScrollTop + scrollbarNode.offsetHeight === scrollbarNode.scrollHeight) {
+						newScrollTop = bodyNode.scrollHeight - bodyNode.offsetHeight;
+
+						if (bodyNode.scrollTop !== newScrollTop) {
+							isBodyScrollDisabled = true;
+							bodyNode.scrollTop = newScrollTop;
+							enableBodyScrollHandler();
+						}
+
+						return;
+					}
+					else {
+						newScrollTop = Math.round(newScrollTop * self._scrollScaleFactor);
+					}
+				}
+
+				if (self._getScrollTopFromBody() !== newScrollTop) {
+					isBodyScrollDisabled = true;
+					self.scrollTo({ y: newScrollTop });
+					enableBodyScrollHandler();
+				}
 			});
 		},
 
-		getScrollPosition: function() {
+		getScrollPosition: function getScrollPosition() {
 			return {
 				x: this.scrollNode.scrollLeft,
 				y: this._getScrollTop()
 			};
 		},
 
-		refresh: function() {
+		refresh: function refresh() {
 			var self = this;
 
-			return this.inherited(arguments).then(function(results) {
+			return this.inherited(arguments).then(function updateScrollbarHeight(results) {
 				var contentHeight = self._getContentHeight();
 				var clampedHeight = Math.min(SCROLLBAR_MAX_HEIGHT, contentHeight);
 
@@ -242,17 +212,6 @@ define([
 				return results;
 			});
 		},
-
-		// Rendering rows can change the dimensions of grid.bodyNode, altering the scroll position,
-		// so re-sync its scroll position with grid.scrollbarNode
-		// DISABLED: shouldn't this be covered by OnDemandList._processScroll->grid.scrollTo?
-		// renderArray: function() {
-		// 	var rows = this.inherited(arguments);
-
-		// 	this._updateBodyScrollTop();
-
-		// 	return rows;
-		// },
 
 		/**
 		 * Scroll to the specified offset(s).
@@ -274,7 +233,7 @@ define([
 
 			if (options.y !== undefined) {
 				newScrollTop = options.y;
-				topPreload = this._getHeadPreload();
+				topPreload = this.topPreload;
 
 				if (topPreload) {
 					if (topPreload.extraHeight !== undefined) {
@@ -286,7 +245,7 @@ define([
 			}
 		},
 
-		_updateScrollScaleFactor: function(contentHeight) {
+		_updateScrollScaleFactor: function _updateScrollScaleFactor(contentHeight) {
 			var scrollbarHeight = this.scrollbarNode.scrollHeight;
 
 			if (contentHeight === undefined) {
@@ -301,7 +260,18 @@ define([
 			}
 		},
 
-		_adjustPreloadHeight: function(preload, noMax) {
+		_adjustPreloadHeight: function _adjustPreloadHeight(preload, noMax) {
+//			console.group('_adjustPreloadHeight');
+			// console.table([{
+			// 	topPreloadHeight: preload.next ? preload.node.offsetHeight : preload.previous.node.offsetHeight,
+			// 	bottomPreloadHeight: preload.previous ? preload.node.offsetHeight : preload.next.node.offsetHeight,
+			// 	rowCount: this.bodyNode.querySelectorAll('.dgrid-row').length,
+			// 	rowHeight: Array.prototype.reduce.call(this.bodyNode.querySelectorAll('.dgrid-row'), function(a, b) {
+			// 		return a + b.offsetHeight;
+			// 	}, 0),
+			// 	totalHeight: this.bodyNode.scrollHeight,
+			// 	virtualHeight: this._getContentHeight()
+			// }]);
 			var height = Math.round(this._calculatePreloadHeight(preload, noMax));
 			var clampedHeight = Math.min(height, preload.next ? TOP_PRELOAD_HEIGHT : BOTTOM_PRELOAD_HEIGHT);
 
@@ -318,6 +288,7 @@ define([
 				'Preload height mismatch ' + clampedHeight + ':' + preload.node.offsetHeight
 			);
 			this._updateScrollScaleFactor();
+//			console.groupEnd();
 		},
 
 		/*
@@ -327,7 +298,7 @@ define([
 		 In order to get the actual average height, a better approach is to check the total height of all rows
 		 and divide by the row count.
 		 */
-		_calcAverageRowHeight: function(rowElements) {
+		_calcAverageRowHeight: function _calcAverageRowHeight(rowElements) {
 			if (!rowElements || !rowElements.length) {
 				return 0;
 			}
@@ -340,13 +311,13 @@ define([
 			return totalHeight / rowElements.length;
 		},
 
-		_getContentChildOffsetTop: function(node) {
+		_getContentChildOffsetTop: function _getContentChildOffsetTop(node) {
 			var offset = node.offsetTop;
 			var topPreload;
 
 			// If offset is zero, then it's the top node and we don't need to add the preload height
 			if (offset) {
-				topPreload = this._getHeadPreload();
+				topPreload = this.topPreload;
 				assert(topPreload.extraHeight !== undefined, 'Top preload extraHeight is undefined');
 				offset += topPreload.extraHeight;
 			}
@@ -357,8 +328,8 @@ define([
 		/**
 		 * Calculate the total virtual height of grid.bodyNode.
 		 */
-		_getContentHeight: function() {
-			var topPreload = this._getHeadPreload();
+		_getContentHeight: function _getContentHeight() {
+			var topPreload = this.topPreload;
 			var bottomPreload = topPreload.next;
 			var contentHeight = this.bodyNode.scrollHeight;
 
@@ -373,14 +344,14 @@ define([
 			return contentHeight;
 		},
 
-		_getPreloadHeight: function(preload) {
+		_getPreloadHeight: function _getPreloadHeight(preload) {
 			return preload.virtualHeight || preload.node.offsetHeight;
 		},
 
 		/*
 		 * Calculate top scroll position of grid.bodyNode within its total virtual height.
 		 */
-		_getScrollTop: function() {
+		_getScrollTop: function _getScrollTop() {
 			var scrollTop;
 
 			if (this._lastScrolledNode === null || this._lastScrolledNode === this.bodyNode) {
@@ -398,9 +369,9 @@ define([
 		// This should give the most accurate value. Small scroll changes in bodyNode might not result in any change
 		// in scrollbarNode.scrollTop.
 		// It should be used when the most recent scroll activity was within the bodyNode.
-		_getScrollTopFromBody: function() {
+		_getScrollTopFromBody: function _getScrollTopFromBody() {
 			var scrollTop;
-			var topPreload = this._getHeadPreload();
+			var topPreload = this.topPreload;
 			var bottomPreload = topPreload.next;
 
 			// If the bottom preload has been scrolled into sight, we can't accurately calculate the scrollTop
@@ -422,7 +393,7 @@ define([
 		// Calculate the top scroll position within the full virtual height based on the scrollbarNode's scroll position
 		// It should be used when the scrollbarNode has been scrolled, but the bodyNode's scroll has not been synced, or
 		// the grid content has not been updated (prune/render rows, adjust preload heights)
-		_getScrollTopFromScrollbar: function() {
+		_getScrollTopFromScrollbar: function _getScrollTopFromScrollbar() {
 			var scrollTop = this.scrollbarNode.scrollTop;
 
 			if (scrollTop) {
@@ -437,6 +408,14 @@ define([
 			}
 
 			return scrollTop;
+		},
+
+		// TODO: this is a bit of a hack; probably better to update ODL to keep preload refs
+		_insertPreload: function _insertPreload(newTopPreload) {
+			this.topPreload = newTopPreload;
+			this.bottomPreload = newTopPreload.next;
+
+			this.inherited(arguments);
 		}
 	});
 });

@@ -10,12 +10,6 @@ define([
 	'./util/misc'
 ], function (List, _StoreMixin, declare, lang, domConstruct, on, when, query, miscUtil) {
 
-	var POSITION = {
-		ABOVE: 1,
-		BELOW: 2,
-		VISIBLE: 3
-	};
-
 	var preloadId = 0;
 
 	function nextPreloadId() {
@@ -112,12 +106,12 @@ define([
 		postCreate: function () {
 			this.inherited(arguments);
 			var self = this;
+			this._scrollHandler = miscUtil[this.pagingMethod](function (event) {
+				self._processScroll(event);
+			}, null, this.pagingDelay);
+
 			// check visibility on scroll events
-			on(this.scrollNode, 'scroll',
-				miscUtil[this.pagingMethod](function (event) {
-					self._processScroll(event);
-				}, null, this.pagingDelay)
-			);
+			on(this.scrollNode, 'scroll', this._scrollHandler);
 		},
 
 		renderQuery: function (query, options) {
@@ -617,7 +611,7 @@ define([
 				var preloadTop = this._getContentChildOffsetTop(preloadNode);
 				preloadPosition = this._getPreloadPosition(preload, searchBuffer);
 
-				if (preloadPosition === POSITION.BELOW) {
+				if (preloadPosition === 'below') {
 					console.log(this.formatLog('preload ' + (preload.next ? 'top' : 'bottom') + ' below LOS'));
 					console.table([{
 						scrollTop: this.bodyNode.scrollTop,
@@ -628,7 +622,7 @@ define([
 					// the preload is below the line of sight
 					preload = traversePreload(preload, (preloadSearchNext = false));
 				}
-				else if (preloadPosition === POSITION.ABOVE) {
+				else if (preloadPosition === 'above') {
 					console.log(this.formatLog('preload ' + (preload.next ? 'top' : 'bottom') + ' above LOS'));
 					// the preload is above the line of sight
 					preload = traversePreload(preload, (preloadSearchNext = true));
@@ -840,6 +834,9 @@ define([
 				}
 			}
 
+			var velem = document.elementFromPoint(1008, 634);
+			var brow = this.row(velem);
+			console.log(this.formatLog('_processScroll; bottom visible: ' + (brow && brow.id) || velem.id));
 			console.groupEnd();
 			// return the promise from the last render
 			return lastRows;
@@ -951,7 +948,7 @@ define([
 		 * from the DOM.
 		 */
 		_getPreloadPosition: function(preload, searchBuffer) {
-			var position = POSITION.VISIBLE;
+			var position = 'visible';
 			var visibleTop = this.bodyNode.scrollTop;
 			var visibleBottom = visibleTop + this.bodyNode.offsetHeight;
 
@@ -967,11 +964,11 @@ define([
 			// seem to make it break more or less, so I do not know…
 			var mungeAmount = 1;
 
-			if (visibleBottom + mungeAmount + searchBuffer < preload.node.offsetTop) {
-				position = POSITION.BELOW;
+			if (visibleBottom + mungeAmount + (searchBuffer * 2) < preload.node.offsetTop) {
+				position = 'below';
 			}
-			else if (visibleTop - mungeAmount - searchBuffer > preload.node.offsetTop + preload.node.offsetHeight) {
-				position = POSITION.ABOVE;
+			else if (visibleTop - mungeAmount - (searchBuffer * 2) > preload.node.offsetTop + preload.node.offsetHeight) {
+				position = 'above';
 			}
 
 			return position;
