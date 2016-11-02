@@ -717,6 +717,14 @@ define([
 						// the current position of beforeNode so the scroll position can be adjusted after
 						// the new rows are added.
 						keepScrollTo = grid._getContentChildOffsetTop(beforeNode);
+						var rows = grid.bodyNode.querySelectorAll('.dgrid-row');
+						console.table([{
+							when: 'before',
+							beforeNode: beforeNode.tagName + (beforeNode.id ? ('#' + beforeNode.id) : ('.' + beforeNode.className)),
+							'beforeNode.offsetTop': keepScrollTo,
+							keepScrollTo: keepScrollTo,
+							rows: rows[0].rowIndex + ' - ' + rows[rows.length - 1].rowIndex
+						}]);
 					}
 					grid._adjustPreloadHeight(preload);
 
@@ -785,18 +793,22 @@ define([
 									// row height, we may need to adjust the scroll once they are filled in
 									// so we don't "jump" in the scrolling position
 									var pos = grid.getScrollPosition();
-									console.log(grid.formatLog(
-										'scrollTo ' + pos.x + ', ' +
-										(pos.y + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo) +
-										' ' + pos.y + ' ' + grid._getContentChildOffsetTop(beforeNode) + ' ' + keepScrollTo
-									));
+									var rows = grid.bodyNode.querySelectorAll('.dgrid-row');
+									console.table([{
+										when: 'after',
+										beforeNode: beforeNode.tagName + (beforeNode.id ? ('#' + beforeNode.id) : ('.' + beforeNode.className)),
+										'beforeNode.offsetTop': grid._getContentChildOffsetTop(beforeNode),
+										keepScrollTo: keepScrollTo,
+										rows: rows[0].rowIndex + ' - ' + rows[rows.length - 1].rowIndex
+									}]);
 									grid.scrollTo({
-										// Since we already had to query the scroll position,
-										// include x to avoid TouchScroll querying it again on its end.
-										x: pos.x,
-										y: pos.y + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo,
-										// Don't kill momentum mid-scroll (for TouchScroll only).
-										preserveMomentum: true
+										// Without VirtualScrollbar, it seems that pos.y is always the same as the
+										// value of 'visibleTop' calculated near the beginning of '_processScroll',
+										// so just use that and don't re-calculate it
+										// (recalculating it with VirtualScrollbar active results in a different value
+										// and buggy behavior)
+										//y: pos.y + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo,
+										y: visibleTop + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo
 									});
 								}
 
