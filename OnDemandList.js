@@ -10,6 +10,7 @@ define([
 	'./util/misc'
 ], function (List, _StoreMixin, declare, lang, domConstruct, on, when, query, miscUtil) {
 
+	var callId = 0;
 	var preloadId = 0;
 
 	function nextPreloadId() {
@@ -412,7 +413,8 @@ define([
 
 		lastScrollTop: 0,
 		_processScroll: function (event) {
-			console.group('processScroll - ' + (arguments.length ? 'event' : 'autoload'));
+			var myId = ++callId;
+			console.group('processScroll [' + myId + '] - ' + (arguments.length ? 'event' : 'autoload'));
 			// summary:x
 			//		Checks to make sure that everything in the viewable area has been
 			//		downloaded, and triggering a request for the necessary data when needed.
@@ -474,6 +476,10 @@ define([
 
 			function removeDistantNodes(preload, removeBelow) {
 				console.warn(grid.formatLog('prune ' + (preload.next ? 'top' : 'bottom') + ', ' + removeBelow));
+				(function() {
+					var firstRow = grid.bodyNode.querySelector('.dgrid-row');
+					console.warn(grid.formatLog('before prune: row ' + firstRow.rowIndex + ' is ' + (grid.bodyNode.scrollTop - firstRow.offsetTop) + 'px from top'));
+				})();
 				// we check to see the the nodes are "far off"
 
 				var startingPreload = preload;
@@ -587,6 +593,16 @@ define([
 					adjustPreloadStats();
 					grid._deleteNodeQueue();
 				}
+
+				(function() {
+					var firstRow = grid.bodyNode.querySelector('.dgrid-row');
+					if (firstRow) {
+						console.warn(grid.formatLog('after prune: row ' + firstRow.rowIndex + ' is ' + (grid.bodyNode.scrollTop - firstRow.offsetTop) + 'px from top'));
+					}
+					else {
+						console.warn('NO ROWS');
+					}
+				})();
 			}
 
 			function traversePreload(preload, moveNext) {
@@ -629,6 +645,15 @@ define([
 				}
 				else {
 					console.log(this.formatLog('preload ' + (preload.next ? 'top' : 'bottom') + ' visible'));
+					(function() {
+						var firstRow = grid.bodyNode.querySelector('.dgrid-row');
+						if (firstRow) {
+							console.warn(grid.formatLog('before render: row ' + firstRow.rowIndex + ' is ' + (grid.bodyNode.scrollTop - firstRow.offsetTop) + 'px from top'));
+						}
+						else {
+							console.warn('NO ROWS');
+						}
+					})();
 					// the preload node is visible, or close to visible, better show it
 					var offset = ((preloadNode.top ? visibleTop - requestBuffer :
 							visibleBottom) - preloadTop) / preload.rowHeight;
@@ -716,15 +741,18 @@ define([
 						// Before adjusting the size of the preload node for the new rows yet to be loaded, remember
 						// the current position of beforeNode so the scroll position can be adjusted after
 						// the new rows are added.
-						keepScrollTo = grid._getContentChildOffsetTop(beforeNode);
+						//keepScrollTo = grid._getContentChildOffsetTop(beforeNode);
+						keepScrollTo = beforeNode.offsetTop;
+						var beforeNodeScrollOffset = grid.bodyNode.scrollTop - beforeNode.offsetTop;
 						var rows = grid.bodyNode.querySelectorAll('.dgrid-row');
 						console.table([{
 							when: 'before',
-							beforeNode: beforeNode.tagName + (beforeNode.id ? ('#' + beforeNode.id) : ('.' + beforeNode.className)),
+							beforeNode: beforeNode.rowIndex || (beforeNode.tagName + (beforeNode.id ? ('#' + beforeNode.id) : ('.' + beforeNode.className))),
 							'beforeNode.offsetTop': keepScrollTo,
-							keepScrollTo: keepScrollTo,
+							beforeNodeScrollOffset: beforeNodeScrollOffset,
 							rows: rows[0].rowIndex + ' - ' + rows[rows.length - 1].rowIndex
 						}]);
+						console.warn(grid.formatLog('beforeNode ' + beforeNode.rowIndex + ' is ' + (grid.bodyNode.scrollTop - beforeNode.offsetTop) + 'px from top'));
 					}
 					grid._adjustPreloadHeight(preload);
 
@@ -763,6 +791,10 @@ define([
 								}
 
 								console.log(grid.formatLog('rendered ' + rows.length + ' rows'));
+								(function() {
+									var firstRow = grid.bodyNode.querySelector('.dgrid-row');
+									console.warn(grid.formatLog('after render: row ' + firstRow.rowIndex + ' is ' + (grid.bodyNode.scrollTop - firstRow.offsetTop) + 'px from top'));
+								})();
 
 								var gridRows = grid._rows;
 								if (gridRows && !('queryLevel' in options) && rows.length) {
@@ -796,20 +828,22 @@ define([
 									var rows = grid.bodyNode.querySelectorAll('.dgrid-row');
 									console.table([{
 										when: 'after',
-										beforeNode: beforeNode.tagName + (beforeNode.id ? ('#' + beforeNode.id) : ('.' + beforeNode.className)),
-										'beforeNode.offsetTop': grid._getContentChildOffsetTop(beforeNode),
-										keepScrollTo: keepScrollTo,
+										beforeNode: beforeNode.rowIndex || (beforeNode.tagName + (beforeNode.id ? ('#' + beforeNode.id) : ('.' + beforeNode.className))),
+										'beforeNode.offsetTop': beforeNode.offsetTop,//grid._getContentChildOffsetTop(beforeNode),
+										beforeNodeScrollOffset: beforeNodeScrollOffset,
 										rows: rows[0].rowIndex + ' - ' + rows[rows.length - 1].rowIndex
 									}]);
-									grid.scrollTo({
+									//grid.scrollTo({
 										// Without VirtualScrollbar, it seems that pos.y is always the same as the
 										// value of 'visibleTop' calculated near the beginning of '_processScroll',
 										// so just use that and don't re-calculate it
 										// (recalculating it with VirtualScrollbar active results in a different value
 										// and buggy behavior)
-										//y: pos.y + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo,
-										y: visibleTop + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo
-									});
+										//y: pos.y + grid._getContentChildOffsetTop(beforeNode) - keepScrollTo
+									//	y: pos.y + beforeNode.offsetTop - keepScrollTo
+									//});
+									grid._restoreScroll(beforeNode, beforeNodeScrollOffset, rows);
+									console.warn(grid.formatLog('RESTORED; beforeNode ' + beforeNode.rowIndex + ' is ' + (grid.bodyNode.scrollTop - beforeNode.offsetTop) + 'px from top'));
 								}
 
 								rangeResults.totalLength.then(function (total) {
@@ -831,6 +865,7 @@ define([
 									}
 								});
 
+								console.log(grid.formatLog('_processScroll [' + myId + '] END'));
 								// make sure we have covered the visible area
 								grid._processScroll();
 								return rows;
@@ -846,12 +881,28 @@ define([
 				}
 			}
 
-			var velem = document.elementFromPoint(1008, 634);
+			var velem = document.elementFromPoint(928, 94);
 			var brow = this.row(velem);
-			console.log(this.formatLog('_processScroll; bottom visible: ' + (brow && brow.id) || velem.id));
+			console.log(this.formatLog('_processScroll; top visible: ' + (brow && brow.id) || velem.id));
 			console.groupEnd();
 			// return the promise from the last render
 			return lastRows;
+		},
+
+		/**
+		 * Restore the scroll position of the content within `grid.bodyNode`
+		 * @param referenceNode {Node} a Node to compare to bodyNode
+		 * @param offset {number} the number of pixels `referenceNode.offsetTop` should be offset from
+		 * 		`bodyNode.scrollTop`
+		 * `offset` can be recorded at some point by subtracting `referenceNode.offsetTop` from `bodyNode.scrollTop`.
+		 * Then later, after DOM manipulations may have shifted the contents of `bodyNode`, potentially changing
+		 * the value of 'referenceNode.offsetTop', this method can be called to adjust `bodyNode.scrollTop` so that
+		 * `referenceNode.offsetTop` has the same relative position it previously had.
+		 */
+		_restoreScroll: function (referenceNode, offset) {
+			if (this.bodyNode.scrollTop !== referenceNode.offsetTop + offset) {
+				this.bodyNode.scrollTop = referenceNode.offsetTop + offset;
+			}
 		},
 
 		_adjustPreloadHeight: function (preload, noMax) {

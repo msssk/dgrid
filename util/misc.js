@@ -83,6 +83,7 @@ define(function () {
 			delay = delay || util.defaultDelay;
 			return function () {
 				if (timer) {
+					console.warn('debounce');
 					clearTimeout(timer);
 					timer = null;
 				}

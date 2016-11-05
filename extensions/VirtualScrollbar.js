@@ -11,6 +11,10 @@ define([
 	'dojo/on',
 	'../util/misc'
 ], function(declare, domConstruct, on, miscUtil) {
+	function isPreloadNode(node) {
+		return node && node.className.indexOf('dgrid-preload') >= 0;
+	}
+
 	// TODO: what is the optimal preload height? It should be high enough to prevent the user from quickly scrolling
 	// to the beginning or end before the scrollbarNode has had a chance to sync.
 	var BOTTOM_PRELOAD_HEIGHT = 4;
@@ -92,10 +96,24 @@ define([
 				isScrollbarScrollDisabled = false;
 			}, window, 150);
 
+			this.ignoreBodyScroll = function ignoreBodyScroll(duration) {
+				if (duration === undefined) {
+					duration = 50;
+				}
+
+				isBodyScrollDisabled = true;
+
+				setTimeout(function() {
+					isBodyScrollDisabled = false;
+				}, duration);
+			};
+
 			on(bodyNode, 'scroll', function handleBodyScroll() {
 				if (isBodyScrollDisabled) {
+					console.warn(self.formatLog('skip body scroll'));
 					return;
 				}
+				console.group(self.formatLog('handleBodyScroll'));
 
 				// scrollTop is sometimes not a whole number, so round it
 				var newScrollTop = Math.round(bodyNode.scrollTop);
@@ -105,9 +123,22 @@ define([
 				self._lastScrolledNode = bodyNode;
 
 
-				var velem = document.elementFromPoint(1008, 634);
-				var brow = self.row(velem);
-				console.log(self.formatLog('bodyNode scroll; bottom visible: ' + (brow && brow.id) || velem.id));
+				(function() {
+					var topNode = document.elementFromPoint(928, 94);
+					var topRow = self.row(topNode);
+					var rows = self.bodyNode.querySelectorAll('.dgrid-row');
+					var info = [];
+					//console.log(self.formatLog('bodyNode scroll; top visible: ' + (topRow && topRow.id) || velem.id));
+					info[self.formatLog('body scroll')] = {
+						'top row': (topRow && topRow.id) || topNode.id,
+						scrollTop: bodyNode.scrollTop,
+						scrollHeight: self.bodyNode.scrollHeight,
+						rows: rows[0].rowIndex + ' - ' + rows[rows.length - 1].rowIndex,
+						rowsHeight: rows[rows.length - 1].offsetTop - rows[0].offsetTop + rows[rows.length - 1].offsetHeight,
+						topPreloadHeight: self.topPreload.virtualHeight
+					};
+					console.table(info);
+				})();
 
 
 				// Besides wasting time, unnecessary calculations can introduce rounding errors.
@@ -140,6 +171,7 @@ define([
 				// scrollbarNode scroll handle to move.
 				if (scrollbarNode.scrollTop !== newScrollTop) {
 					isScrollbarScrollDisabled = true;
+					console.log(self.formatLog('body scroll set scrollbar'));
 					scrollbarNode.scrollTop = newScrollTop;
 					enableScrollbarScrollHandler();
 				}
@@ -150,10 +182,12 @@ define([
 				self._scrollHandler({
 					target: bodyNode
 				});
+				console.groupEnd();
 			});
 
 			on(scrollbarNode, 'scroll', function handleScrollbarScroll() {
 				if (isScrollbarScrollDisabled) {
+					console.warn(self.formatLog('skip scrollbar scroll'));
 					return;
 				}
 
@@ -173,6 +207,7 @@ define([
 
 						if (bodyNode.scrollTop !== newScrollTop) {
 							isBodyScrollDisabled = true;
+							console.log(self.formatLog('scrollbar scroll set body'));
 							bodyNode.scrollTop = newScrollTop;
 							enableBodyScrollHandler();
 						}
@@ -186,6 +221,7 @@ define([
 
 				if (self._getScrollTopFromBody() !== newScrollTop) {
 					isBodyScrollDisabled = true;
+					console.log(self.formatLog('scrollbar scroll set body'));
 					self.scrollTo({ y: newScrollTop });
 					enableBodyScrollHandler();
 				}
@@ -213,6 +249,27 @@ define([
 			});
 		},
 
+		zrenderArray: function renderArray() {
+			var rows = this.inherited(arguments);
+			var bottomNode;
+			var rowsHeight;
+
+			// If rows have been rendered, and content is scrolled below the top, the insertion of rows
+			// will shift the visible rows down. Adjust the scroll position so that the previously visible
+			// rows remain visible.
+			if (rows.length && this.bodyNode.scrollTop) {
+				if (isPreloadNode(rows[0].previousElementSibling)) {
+					// NOTE: assumes presence of preload node after rows
+					bottomNode = rows[rows.length - 1].nextElementSibling;
+					rowsHeight = bottomNode.offsetTop - rows[0].offsetTop;
+					this.ignoreBodyScroll(10);
+					this.bodyNode.scrollTop = this.bodyNode.scrollTop + rowsHeight;
+				}
+			}
+
+			return rows;
+		},
+
 		/**
 		 * Scroll to the specified offset(s).
 		 * @param [options.x] {number} The x-offset to scroll to
@@ -220,10 +277,7 @@ define([
 		 * The y-value should be appropriate for the grid's full (virtual) height.
 		 */
 		scrollTo: function scrollTo(options) {
-			console.log(this.formatLog('scrollTo[' + scrollTo.caller.nom + ']: ' + options.x + ', ' + options.y));
-			if (scrollTo.caller.nom === undefined) {
-				console.trace();
-			}
+			console.warn(this.formatLog('scrollTo[' + scrollTo.caller.nom + ']: ' + options.x + ', ' + options.y));
 			var topPreload;
 			var newScrollTop;
 
@@ -416,6 +470,36 @@ define([
 			this.bottomPreload = newTopPreload.next;
 
 			this.inherited(arguments);
+		},
+
+		_ZrestoreScroll: function _restoreScroll(node, offset, renderedRows) {
+			var scrollPosition = this.getScrollPosition();
+			var nodeOffsetTop = this._getContentChildOffsetTop(node);
+			var extraHeight = 0;
+			var firstRow;
+			var lastRow;
+			var newScrollTop;
+
+			if (renderedRows) {
+				firstRow = renderedRows[0];
+				lastRow = renderedRows[renderedRows.length - 1].nextSibling;
+				extraHeight = lastRow.offsetTop - firstRow.offsetTop;
+				extraHeight += lastRow.offsetHeight;
+			}
+
+			newScrollTop = nodeOffsetTop + offset;// + extraHeight;
+			console.table([{
+				scrollPositionY: scrollPosition.y,
+				bodyNodeScrollTop: this.bodyNode.scrollTop,
+				nodeOffsetTop: nodeOffsetTop,
+				'node.offsetTop': node.offsetTop,
+				rowsHeight: extraHeight
+			}]);
+			if (scrollPosition.y !== newScrollTop) {
+				this.scrollTo({
+					y: newScrollTop
+				});
+			}
 		}
 	});
 });
