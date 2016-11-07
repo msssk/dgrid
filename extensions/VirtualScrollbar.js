@@ -124,6 +124,7 @@ define([
 
 
 				(function() {
+					// NOTE: these coordinates will need tweaking based on your screen
 					var topNode = document.elementFromPoint(928, 94);
 					var topRow = self.row(topNode);
 					var rows = self.bodyNode.querySelectorAll('.dgrid-row');
