@@ -1,10 +1,10 @@
 The `VirtualScrollbar` extension is close to being in working condition. There is only one outstanding bug I'm aware
 of, but it is significant.
 
-# Edit `test/VirtualScrollbar.html` and reduce the row count to something more manageable, like 5000.
-# Load `test/VirtualScrollbar.html`.
-# Use the scrollbar to scroll down about 50%.
-# Use the mouse wheel within the grid content to scroll rows up. Keep gradually going up, paying close attention to
+1. Edit `test/VirtualScrollbar.html` and reduce the row count to something more manageable, like 5000.
+1. Load `test/VirtualScrollbar.html`.
+1. Use the scrollbar to scroll down about 50%.
+1. Use the mouse wheel within the grid content to scroll rows up. Keep gradually going up, paying close attention to
 the number of rows scrolled. At some point there will be a jump (instead of scrolling up 2-5 rows, it scrolls up 50
 rows).
 
