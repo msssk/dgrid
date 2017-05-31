@@ -9,11 +9,13 @@
 			}
 
 			body {
+				background-color: rgb(34, 45, 54);
+				color: rgb(145, 161, 175);
 				font-family: sans-serif;
 			}
 
 			#container {
-				border: 1px solid rgb(53, 54, 53);
+				border: 1px solid rgb(74, 91, 122);
 				height: 500px;
 				width: 800px;
 				overflow: hidden;
@@ -46,6 +48,10 @@
 				width: 100%;
 			}
 
+			.even {
+				background-color: rgb(47, 79, 107);
+			}
+
 			.row:first-of-type {
 				border-top: none;
 			}
@@ -53,6 +59,18 @@
 	</head>
 
 	<body>
+		<h1>Virtualized scrollbar proof-of-concept</h1>
+
+		<p>
+			This demonstrates the viability of virtualized scrolling, wherein the scrollbar is not directly attached
+			to the content being scrolled.
+		</p>
+
+		<ul>
+			<li>The content scrollbar is obscured by a separate element with a scrollbar</li>
+			<li>Scroll event listeners on both elements keep the scroll position synchronized between the two</li>
+		</ul>
+
 		<div id="container">
 			<div id="viewport">
 				<div id="content">
@@ -63,57 +81,44 @@
 			</div>
 		</div>
 
-		<button id="disableButton">Disable</button>
-		<button id="enableButton">Enable</button>
+		<form id="configForm">
+			<div>
+				Scroll synchronization:
+				<label><input type="radio" name="scrollsync" value="enabled" checked>Enabled</label>
+				<label><input type="radio" name="scrollsync" value="disabled">Disabled</label>
+			</div>
+			<div>
+				Content area scrollbar (show for debugging)
+				<label><input type="radio" name="debugscrollbar" value="hide" checked>Hide</label>
+				<label><input type="radio" name="debugscrollbar" value="show">Show</label>
+			</div>
+		</form>
 
-		<p>Scroll handling is enabled by default.</p>
-
-		<p>Testing:
+		<p>
+			Test both with scroll synchronization enabled and disabled. When enabled, performance and responsiveness
+			should closely match when disabled.
 			<ul>
-				<li>Test scrolling with mousewheel in the content area</li>
-				<li>Test direct interactions with the right-most scrollbar - the left one can be ignored since
-					in practice it will always be hidden.
-				</li>
+				<li>Scroll with mousewheel in the content area</li>
+				<li>Scroll by dragging the scroll handle</li>
+				<li>Scroll with the mousewheel while the cursor is positioned over the scrollbar</li>
+				<li>Scroll by clicking and holding the up and down arrows at the top and bottom of the scrollbar</li>
+				<li>Scroll by clicking and holding the cursor on the scrollbar, but outside the scroll handle</li>
 			</ul>
 		</p>
 
-		<p>Problems:
-			<ol>
-				<li>Drag the scroll handle up and down, play with it a bit. It's mostly reliable,
-					but occasionally when you release it and stop scrolling, the left scroller is not in sync.
-					<ul>
-						<li>This should <em>never</em> happen. Very bad UX.</li>
-					</ul>
-				</li>
-				<li>Click the up/down buttons at the top and bottom of the scroll bar. Scrolling is a bit janky.
-					<ul>
-						<li>For comparison, click the "Disable" button to disable all scroll handling, then use the
-							up/down buttons on the left scroll bar.</li>
-					</ul>
-				</li>
-				<li>Use mouse wheel to scroll down a bit (10-15% of the scroll height should suffice). Rapidly scroll
-					back up. Sometimes the content will scroll to the top, but the right scroll bar handle will not
-					be all the way at the top.
-				</li>
-			</ol>
+		<p>
+			Early iterations of this proof-of-concept involved <code>requestAnimationFrame</code> and throttling or
+			debouncing the scroll event handler. The best performance achieved was without any optimization efforts.
 		</p>
-
-		<p>Hopefully some of these issues are related to the <code>throttle</code> function in use. However, the
-			<code>throttle</code> function has been designed to not discard the final invocation.
-		</p>
-
-		<script src="../../dojo/dojo.js" data-dojo-config="async: true"></script>
 
 		<script>
-			require([
-				'dojo/dom',
-				'dojo/on'
-			], function(dom, on) {
-				var container = dom.byId('container');
-				var viewport = dom.byId('viewport');
-				var content = dom.byId('content');
-				var scroller = dom.byId('scroller');
-				var scrollerContent = dom.byId('scrollerContent');
+			(function () {
+				var container = document.getElementById('container');
+				var viewport = document.getElementById('viewport');
+				var content = document.getElementById('content');
+				var scroller = document.getElementById('scroller');
+				var scrollerContent = document.getElementById('scrollerContent');
+				var fragment = document.createDocumentFragment();
 				// TODO: do something about OSX
 				// http://stackoverflow.com/questions/7492062/css-overflow-scroll-always-show-vertical-scroll-bar
 				// If calculated scrollbarWidth is 0, then can we assume it is 7px?
@@ -123,39 +128,34 @@
 				var row;
 				var i;
 
-				// hide the content's scrollbar
-				/* */
-				viewport.style.width = (container.clientWidth - scrollbarWidth) + 'px';
-				content.style.width = container.clientWidth + 'px';
-				scroller.style.width = scrollbarWidth + 'px';
-				/* */
+				function hideContentScrollbar () {
+					viewport.style.width = (container.clientWidth - scrollbarWidth) + 'px';
+					content.style.width = container.clientWidth + 'px';
+					scroller.style.width = scrollbarWidth + 'px';
+				}
 
-				// make both scrollbars visible for testing
-				/* * /
-				viewport.style.width = (container.clientWidth - scrollbarWidth - 1) + 'px';
-				content.style.width = (container.clientWidth - (scrollbarWidth + 1) - 1) + 'px';
-				scroller.style.width = (scrollbarWidth + 1) + 'px';
-				/* */
+				function showContentScrollbar () {
+					viewport.style.width = (container.clientWidth - scrollbarWidth - 1) + 'px';
+					content.style.width = (container.clientWidth - (scrollbarWidth + 1) - 1) + 'px';
+					scroller.style.width = (scrollbarWidth + 1) + 'px';
+				}
+
+				hideContentScrollbar();
 
 				for (i = 0; i < 500; i++) {
 					row = document.createElement('div');
-					row.className = 'row';
+					row.className = 'row' + ((i % 2) ? ' even' : '');
 					row.innerHTML = 'Row ' + (i + 1);
-					content.appendChild(row);
+					fragment.appendChild(row);
 				}
+				content.appendChild(fragment);
 
 				scrollerContent.style.height = content.scrollHeight + 'px';
 
-
-				var handleContentScroll;
-				var handleScrollerScroll;
-				var contentScrollHandle;
-				var scrollerScrollHandle;
 				var contentScrollPauseCounter = 0;
 				var scrollerScrollPauseCounter = 0;
-				var waiting = false;
 
-				function handleContentScroll(event) {
+				function handleContentScroll (event) {
 					if (contentScrollPauseCounter) {
 						contentScrollPauseCounter--;
 						return;
@@ -165,7 +165,7 @@
 					scroller.scrollTop = event.target.scrollTop;
 				}
 
-				function handleScrollerScroll(event) {
+				function handleScrollerScroll (event) {
 					if (scrollerScrollPauseCounter) {
 						scrollerScrollPauseCounter--;
 						return;
@@ -175,20 +175,42 @@
 					content.scrollTop = event.target.scrollTop;
 				}
 
-				contentScrollHandle = on(content, 'scroll', handleContentScroll);
-				scrollerScrollHandle = on(scroller, 'scroll', handleScrollerScroll);
+				function deferredContentScrollHandler (event) {
+					setTimeout(handleContentScroll, 0, event);
+				}
 
+				function enableScrollSync () {
+					content.addEventListener('scroll', handleContentScroll);
+					// content.addEventListener('scroll', deferredContentScrollHandler);
+					scroller.addEventListener('scroll', handleScrollerScroll);
+				}
 
-				on(dom.byId('disableButton'), 'click', function() {
-					contentScrollHandle.remove();
-					scrollerScrollHandle.remove();
-				});
+				function disableScrollSync () {
+					content.removeEventListener('scroll', handleContentScroll);
+					scroller.removeEventListener('scroll', handleScrollerScroll);
+				}
 
-				on(dom.byId('enableButton'), 'click', function() {
-					contentScrollHandle = on(content, 'scroll', handleContentScroll);
-					scrollerScrollHandle = on(scroller, 'scroll', handleScrollerScroll);
-				});
-			});
+				document.getElementById('configForm').addEventListener('change', function (event) {
+					if (event.target.name === 'scrollsync') {
+						if (event.target.value === 'enabled') {
+							enableScrollSync();
+						}
+						else {
+							disableScrollSync();
+						}
+					}
+					else if (event.target.name === 'debugscrollbar') {
+						if (event.target.value === 'show') {
+							showContentScrollbar();
+						}
+						else {
+							hideContentScrollbar();
+						}
+					}
+				})
+
+				enableScrollSync();
+			})();
 		</script>
 	</body>
 </html>
